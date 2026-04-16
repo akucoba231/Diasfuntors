@@ -252,6 +252,14 @@
         </div>
     </div>
 
+    <div id="modalRincian" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="judulModalRincian" style="color: var(--primary); margin-bottom: 20px; text-align: center; font-weight: 900; text-transform: uppercase;"></h3>
+            <div id="kontenModalRincian" style="margin-bottom: 20px;"></div>
+            <button class="btn btn-primary" onclick="document.getElementById('modalRincian').classList.remove('active')">TUTUP RINCIAN</button>
+        </div>
+    </div>
+
     <div id="page-pengaturan" class="page">
         <div class="card" style="border-top: 5px solid var(--primary);">
             <h3 style="color: var(--primary); margin-bottom: 20px; text-align: center; font-weight: 800;">Pengaturan Akun</h3>
@@ -271,27 +279,10 @@
 
 </div>
 
+<script src="dataMateri.js"></script>
+
 <script>
-    // --- DATABASE & STRUKTUR MATERI ---
-    const kriteriaDefault = ["Posisi awal / sikap siap dilakukan dengan benar", "Mengeksekusi gerakan utama sesuai teknik yang tepat", "Mampu menjaga keseimbangan dan koordinasi tubuh"];
-    const dbMateriFMS = [
-        { id_materi: 'LOK-1', jenis_materi: 'Lokomotor', nama_materi: 'Berjalan', kriteria: kriteriaDefault, instruksi: 'Awali berjalan dengan kaki kanan lalu melangkah secara bergantian kanan-kiri.' },
-        { id_materi: 'LOK-2', jenis_materi: 'Lokomotor', nama_materi: 'Berlari', kriteria: kriteriaDefault, instruksi: 'Minta siswa berlari mengubah gerakan kaki dan ayunan lengan secara bergantian dengan ritme stabil.' },
-        { id_materi: 'LOK-3', jenis_materi: 'Lokomotor', nama_materi: 'Melompat', kriteria: kriteriaDefault, instruksi: 'Minta siswa melompat dengan kedua kaki secara bersamaan dan mendarat dengan seimbang.' },
-        { id_materi: 'LOK-4', jenis_materi: 'Lokomotor', nama_materi: 'Meloncat', kriteria: kriteriaDefault, instruksi: 'Minta siswa meloncat menggunakan satu kaki secara konsisten, berulang minimal 3-5 kali sambil menjaga keseimbangan.' },
-        { id_materi: 'LOK-5', jenis_materi: 'Lokomotor', nama_materi: 'Lari Zig-Zag', kriteria: kriteriaDefault, instruksi: 'Minta siswa berlari mengubah arah secara zig-zag sambil tetap mempertahankan keseimbangan tubuh.' },
-        { id_materi: 'LOK-6', jenis_materi: 'Lokomotor', nama_materi: 'Lompat Rintangan', kriteria: kriteriaDefault, instruksi: 'Minta siswa melompati rintangan dengan kedua kaki secara bersamaan, lakukan dua kali tolakan dan mendarat dengan dua kaki.' },
-        { id_materi: 'NON-1', jenis_materi: 'Non Lokomotor', nama_materi: 'Membungkuk', kriteria: kriteriaDefault, instruksi: 'Minta siswa membungkuk ke depan menyentuh lantai dengan lutut tidak terlalu menekuk dan kembali ke posisi awal dengan stabil.' },
-        { id_materi: 'NON-2', jenis_materi: 'Non Lokomotor', nama_materi: 'Memutar Badan', kriteria: kriteriaDefault, instruksi: 'Minta siswa memutar badan secara bergantian ke kanan dan kiri sambil kepala mengikuti arah putaran dan tetap menjaga keseimbangan.' },
-        { id_materi: 'NON-3', jenis_materi: 'Non Lokomotor', nama_materi: 'Keseimbangan Satu Kaki', kriteria: kriteriaDefault, instruksi: 'Minta siswa berdiri satu kaki selama 5-10 detik sambil menjaga keseimbangan, fokus pandangan ke depan dan tangan membantu menjaga.' },
-        { id_materi: 'NON-4', jenis_materi: 'Non Lokomotor', nama_materi: 'Menekuk Lutut', kriteria: kriteriaDefault, instruksi: 'Minta siswa menekuk lutut (jongkok) dan kembali ke posisi berdiri dengan gerakan naik-turun yang stabil. Pastikan tumit tetap menapak dan tubuh tidak condong ke depan/belakang.' },
-        { id_materi: 'MAN-1', jenis_materi: 'Manipulatif', nama_materi: 'Mengoper', kriteria: kriteriaDefault, instruksi: 'Minta siswa mengoper bola secara terarah menggunakan teknik yang benar dan kekuatan yang terukur.' },
-        { id_materi: 'MAN-2', jenis_materi: 'Manipulatif', nama_materi: 'Menangkap', kriteria: kriteriaDefault, instruksi: 'Minta siswa mengamati arah bola dan menggunakan kedua tangan untuk menangkapnya dengan sigap.' },
-        { id_materi: 'MAN-3', jenis_materi: 'Manipulatif', nama_materi: 'Menggiring', kriteria: kriteriaDefault, instruksi: 'Minta siswa menggiring bola melewati area yang ditentukan dengan kontrol bola yang baik.' },
-        { id_materi: 'MAN-4', jenis_materi: 'Manipulatif', nama_materi: 'Menendang', kriteria: kriteriaDefault, instruksi: 'Minta siswa memposisikan kaki tumpu dengan benar, lalu menendang bola tepat sasaran.' },
-        { id_materi: 'MAN-5', jenis_materi: 'Manipulatif', nama_materi: 'Memukul', kriteria: kriteriaDefault, instruksi: 'Gunakan bola plastik kasti dan tongkat pemukul.' },
-        { id_materi: 'MAN-6', jenis_materi: 'Manipulatif', nama_materi: 'Lempar Bawah', kriteria: kriteriaDefault, instruksi: 'Gunakan bola plastik dan lempar secara bawah dengan benar.' }
-    ];
+
 
     let db = {
         siswa: JSON.parse(localStorage.getItem('fms_siswa')) || [],
@@ -299,7 +290,9 @@
         pengaturan: JSON.parse(localStorage.getItem('fms_pengaturan')) || { uname: 'admin', pass: 'admin', nama: 'Guru Olahraga', sekolah: 'SD Negeri' }
     };
 
-    let state = { history: [], currentPage: 'page-login', tempAsesmen: { id_materi: '', jenis_materi: '', nama_materi: '', idSiswa: null, namaSiswa: '' } };
+    let state = { history: [], currentPage: 'page-login', tempAsesmen: { id_materi: '', jenis_materi: '', nama_materi: '', idSiswa: null, namaSiswa: '' },
+      dinilaiSesiIni : []
+    };
 
     // --- AUTO-PATCH & UPDATE NILAI LATEST LOGIC ---
     window.onload = function() {
@@ -366,7 +359,10 @@
 
     function handleBack() {
         if (state.currentPage === 'page-form-asesmen' && !confirm("Data penilaian belum disimpan. Anda yakin ingin kembali?")) return;
-        if (state.currentPage === 'page-pilih-siswa-asesmen' && !confirm("Apakah Anda yakin menutup halaman asesment?")) return;
+        if (state.currentPage === 'page-pilih-siswa-asesmen' && !confirm("Apakah Anda yakin menutup halaman asesment?")){
+          
+        return;
+        } 
         
         if (state.history.length > 0) { let prev = state.history.pop(); showPage(prev.id, prev.title); } 
         else { showPage('page-dashboard', 'Menu Utama'); }
@@ -452,41 +448,227 @@
     }
 
     function renderSiswaAsesmen() {
-        document.getElementById('lblMateriAktif').innerText = state.tempAsesmen.nama_materi; let container = document.getElementById('listSiswaAsesmenContainer'); container.innerHTML = '';
-        db.siswa.forEach(s => {
-            let idReal = s.id_siswa || s.id;
-            let isAssessed = db.asesmen.some(a => a.id_materi ? (a.idSiswa === idReal && a.id_materi === state.tempAsesmen.id_materi) : (a.idSiswa === idReal && a.kategori === state.tempAsesmen.jenis_materi && a.sub === state.tempAsesmen.nama_materi));
-            let statusBadge = isAssessed ? '<span style="background: var(--tertiary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px; font-weight: bold;">✅ Selesai</span>' : '';
-            let actionText = isAssessed ? '<span style="color: var(--text-light); font-size: 0.95rem;">Ulangi ➔</span>' : '<span style="color: var(--primary); font-weight: 800;">NILAI ➔</span>';
-            container.innerHTML += `<div class="list-item" onclick="bukaFormAsesmen(${idReal}, '${s.nama_siswa || s.nama}')" style="cursor:pointer; border-left-color: ${isAssessed ? 'var(--tertiary)' : 'var(--secondary)'}; ${isAssessed ? 'opacity:0.85;' : ''}">
-                <div style="flex: 1; min-width: 0; display: flex; align-items: center;"><span class="truncate-text" style="max-width: 70%; font-size:1.1rem;">${s.nama_siswa || s.nama}</span>${statusBadge}</div>${actionText}</div>`;
-        });
-    }
+    document.getElementById('lblMateriAktif').innerText = state.tempAsesmen.nama_materi; 
+    let container = document.getElementById('listSiswaAsesmenContainer'); 
+    container.innerHTML = '';
+    
+    db.siswa.forEach(s => {
+        let idReal = s.id_siswa || s.id;
+        
+        // --- MODIFIKASI: Hanya mengecek keranjang sesi sementara ---
+        let isAssessed = state.dinilaiSesiIni.includes(idReal);
+        
+        let statusBadge = isAssessed ? '<span style="background: var(--tertiary); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px; font-weight: bold;">✅ Selesai</span>' : '';
+        let actionText = isAssessed ? '<span style="color: var(--text-light); font-size: 0.95rem;">Ulangi ➔</span>' : '<span style="color: var(--primary); font-weight: 800;">NILAI ➔</span>';
+        
+        container.innerHTML += `<div class="list-item" onclick="bukaFormAsesmen(${idReal}, '${s.nama_siswa || s.nama}')" style="cursor:pointer; border-left-color: ${isAssessed ? 'var(--tertiary)' : 'var(--secondary)'}; ${isAssessed ? 'opacity:0.85;' : ''}">
+            <div style="flex: 1; min-width: 0; display: flex; align-items: center;"><span class="truncate-text" style="max-width: 70%; font-size:1.1rem;">${s.nama_siswa || s.nama}</span>${statusBadge}</div>${actionText}</div>`;
+    });
+}
+
 
     function pilihSubMateri(id_materi) {
-        let materiTerpilih = dbMateriFMS.find(m => m.id_materi === id_materi);
-        state.tempAsesmen.id_materi = materiTerpilih.id_materi; state.tempAsesmen.nama_materi = materiTerpilih.nama_materi;
-        renderSiswaAsesmen(); navigate('page-pilih-siswa-asesmen', 'Pilih Siswa');
-    }
+    let materiTerpilih = dbMateriFMS.find(m => m.id_materi === id_materi);
+    state.tempAsesmen.id_materi = materiTerpilih.id_materi; 
+    state.tempAsesmen.nama_materi = materiTerpilih.nama_materi;
+    
+    // --- TAMBAHAN BARU: Kosongkan keranjang sesi setiap kali materi baru dibuka ---
+    state.dinilaiSesiIni = []; 
 
-    function bukaFormAsesmen(idSiswa, namaSiswa) {
+    renderSiswaAsesmen(); 
+    navigate('page-pilih-siswa-asesmen', 'Pilih Siswa');
+}
+
+function bukaFormAsesmen(idSiswa, namaSiswa) {
         state.tempAsesmen.idSiswa = idSiswa; state.tempAsesmen.namaSiswa = namaSiswa;
         let materiTerpilih = dbMateriFMS.find(m => m.id_materi === state.tempAsesmen.id_materi);
-        document.getElementById('namaSiswaDinilai').innerText = namaSiswa; document.getElementById('materiDinilai').innerText = materiTerpilih.nama_materi; document.getElementById('instruksiGuruText').innerText = materiTerpilih.instruksi;
-        let container = document.getElementById('kriteriaContainer'); container.innerHTML = '';
-        materiTerpilih.kriteria.forEach((k, i) => { container.innerHTML += `<label class="checkbox-group"><input type="checkbox" id="krit_${i}" value="1"><span class="checkbox-label">${k}</span></label>`; });
+        
+        document.getElementById('namaSiswaDinilai').innerText = namaSiswa; 
+        document.getElementById('materiDinilai').innerText = materiTerpilih.nama_materi; 
+        
+        // Memasukkan Teks Instruksi dan Video ke dalam kotak instruksi
+        let instruksiHtml = `
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <video controls style="width: 100%; border-radius: 12px; border: 2px solid #B2EBF2; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <source src="assets/${materiTerpilih.video}" type="video/mp4">
+                    Browser Anda tidak mendukung tag video.
+                </video>
+            </div>
+            ${materiTerpilih.instruksi}
+        `;
+        document.getElementById('instruksiGuruText').innerHTML = instruksiHtml;
+        
+        let container = document.getElementById('kriteriaContainer'); 
+        container.innerHTML = '';
+        
+        // --- RANCANGAN CARD: PERCOBAAN 1 ---
+        let htmlP1 = `
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--primary-light);">
+            <div style="background: var(--primary-light); color: var(--primary-dark); padding: 14px; text-align: center; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px;">
+                ▶ PERCOBAAN 1
+            </div>
+            <div style="padding: 5px 15px 15px 15px;">`;
+            
+        materiTerpilih.kriteria.forEach((k, i) => {
+            htmlP1 += `
+                <div style="display: grid; grid-template-columns: 3fr 1fr; align-items: center; padding: 14px 0; border-bottom: 1px dashed #e0e0e0;">
+                    <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); padding-right: 15px;">
+                        <span style="color: var(--primary); font-weight: 800; margin-right: 5px;">${i+1}.</span> ${k}
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; border-left: 2px solid #f4f7f9;">
+                        <input type="checkbox" class="cek-p1" value="1" style="width: 28px; height: 28px; accent-color: var(--primary); margin: 0; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    </div>
+                </div>`;
+        });
+        htmlP1 += `</div></div>`;
+
+        // --- RANCANGAN CARD: PERCOBAAN 2 ---
+        let htmlP2 = `
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 25px; border: 1px solid #FFE0B2;">
+            <div style="background: #FFE0B2; color: #D84315; padding: 14px; text-align: center; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px;">
+                ▶ PERCOBAAN 2
+            </div>
+            <div style="padding: 5px 15px 15px 15px;">`;
+            
+        materiTerpilih.kriteria.forEach((k, i) => {
+            htmlP2 += `
+                <div style="display: grid; grid-template-columns: 3fr 1fr; align-items: center; padding: 14px 0; border-bottom: 1px dashed #e0e0e0;">
+                    <div style="font-size: 0.95rem; line-height: 1.5; color: var(--text-main); padding-right: 15px;">
+                        <span style="color: #D84315; font-weight: 800; margin-right: 5px;">${i+1}.</span> ${k}
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; border-left: 2px solid #f4f7f9;">
+                        <input type="checkbox" class="cek-p2" value="1" style="width: 28px; height: 28px; accent-color: #D84315; margin: 0; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    </div>
+                </div>`;
+        });
+        htmlP2 += `</div></div>`;
+
+        container.innerHTML = htmlP1 + htmlP2;
+
+        // Memastikan tombol simpan muncul & area hasil tersembunyi setiap kali form dibuka baru
+        let btnSimpan = document.querySelector('#page-form-asesmen .btn-primary');
+        btnSimpan.style.display = 'block';
+        btnSimpan.id = "btnSimpanPenilaian"; // Tambahkan ID untuk mudah ditarget
+        
+        // Siapkan kontainer hasil (jika belum ada, buat dinamis)
+        let hasilContainer = document.getElementById('hasilPenilaianContainer');
+        if(!hasilContainer) {
+            hasilContainer = document.createElement('div');
+            hasilContainer.id = 'hasilPenilaianContainer';
+            container.parentNode.insertBefore(hasilContainer, btnSimpan.nextSibling);
+        }
+        hasilContainer.style.display = 'none';
+        hasilContainer.innerHTML = '';
+        
         navigate('page-form-asesmen', 'Penilaian');
     }
 
     function simpanAsesmen() {
-        let score = 0; document.querySelectorAll('#kriteriaContainer input[type="checkbox"]').forEach(c => { if(c.checked) score++; });
+        let scoreP1 = 0;
+        let scoreP2 = 0;
+
+        document.querySelectorAll('#kriteriaContainer .cek-p1').forEach(c => { if(c.checked) scoreP1++; });
+        document.querySelectorAll('#kriteriaContainer .cek-p2').forEach(c => { if(c.checked) scoreP2++; });
+
         let materiTerpilih = dbMateriFMS.find(m => m.id_materi === state.tempAsesmen.id_materi);
-        let data = { id: Date.now(), tanggal: new Date().toLocaleString('id-ID'), id_materi: state.tempAsesmen.id_materi, kategori: state.tempAsesmen.jenis_materi, sub: state.tempAsesmen.nama_materi, idSiswa: state.tempAsesmen.idSiswa, namaSiswa: state.tempAsesmen.namaSiswa, nilai: score, maxNilai: materiTerpilih.kriteria.length };
+
+        let nilaiAkhir = scoreP1 + scoreP2; 
+        let maxPerPercobaan = materiTerpilih.kriteria.length; // Max kriteria (misal: 4)
+        let nilaiMaksimal = maxPerPercobaan * 2; // Total keseluruhan (misal: 8)
+
+        // Hitung persentase
+        let persentase = Math.round((nilaiAkhir / nilaiMaksimal) * 100);
+
+        // Tentukan Kategori, Warna, dan Ikon berdasarkan Rubrik Penilaian
+        let kategori = "";
+        let warnaKategori = "";
+        let iconKategori = "";
         
-        db.asesmen.push(data); localStorage.setItem('fms_asesmen', JSON.stringify(db.asesmen));
-        updateNilaiSiswa(state.tempAsesmen.idSiswa); alert('Penilaian berhasil disimpan!');
-        renderSiswaAsesmen(); let prev = state.history.pop(); showPage(prev.id, prev.title);
+        if (persentase >= 85) {
+            kategori = "Sangat Baik";
+            warnaKategori = "#2E7D32"; // Hijau Gelap
+            iconKategori = "⭐";
+        } else if (persentase >= 70) {
+            kategori = "Baik";
+            warnaKategori = "#1976D2"; // Biru
+            iconKategori = "👍";
+        } else if (persentase >= 55) {
+            kategori = "Cukup";
+            warnaKategori = "#F57C00"; // Oranye
+            iconKategori = "⚖️";
+        } else {
+            kategori = "Perlu Bimbingan";
+            warnaKategori = "#D32F2F"; // Merah
+            iconKategori = "⚠️";
+        }
+
+        let data = { 
+            id: Date.now(), 
+            tanggal: new Date().toLocaleString('id-ID'), 
+            id_materi: state.tempAsesmen.id_materi, 
+            kategori: state.tempAsesmen.jenis_materi, 
+            sub: state.tempAsesmen.nama_materi, 
+            idSiswa: state.tempAsesmen.idSiswa, 
+            namaSiswa: state.tempAsesmen.namaSiswa, 
+            nilai_p1: scoreP1,     
+            nilai_p2: scoreP2,     
+            nilai: nilaiAkhir,     
+            maxNilai: nilaiMaksimal
+        };
+        
+        db.asesmen.push(data); 
+        localStorage.setItem('fms_asesmen', JSON.stringify(db.asesmen));
+        updateNilaiSiswa(state.tempAsesmen.idSiswa); 
+        state.dinilaiSesiIni.push(state.tempAsesmen.idSiswa);
+        
+        // --- UX UPDATE: Munculkan hasil, sembunyikan form ---
+        
+        // 1. Sembunyikan tombol simpan
+        document.getElementById('btnSimpanPenilaian').style.display = 'none';
+        
+        // 2. Nonaktifkan (disable) semua checkbox
+        document.querySelectorAll('.cek-p1, .cek-p2').forEach(c => c.disabled = true);
+        
+        // 3. Tampilkan kartu hasil nilai sesuai rancangan baru
+        let hasilContainer = document.getElementById('hasilPenilaianContainer');
+        hasilContainer.style.display = 'block';
+        hasilContainer.innerHTML = `
+            <div style="background: #ffffff; border: 2px solid ${warnaKategori}; border-radius: 16px; padding: 25px 20px; text-align: center; margin-top: 15px; animation: fadeIn 0.4s; box-shadow: 0 8px 20px rgba(0,0,0,0.08);">
+                <p style="color: #64748b; margin-bottom: 5px; font-weight: 700; font-size: 0.95rem;">✅ Asesmen Tersimpan!</p>
+                
+                <h2 style="font-size: 4rem; font-weight: 900; color: ${warnaKategori}; margin: 5px 0; line-height: 1;">${persentase}<span style="font-size: 2rem;">%</span></h2>
+                <h4 style="font-size: 1.4rem; font-weight: 800; color: ${warnaKategori}; margin-bottom: 25px;">${iconKategori} ${kategori}</h4>
+                
+                <div style="background: #f8fafc; border-radius: 12px; padding: 15px; margin: 15px 0; display:flex; justify-content:space-around; align-items: center; border: 1px solid #e2e8f0;">
+                    <div style="text-align: center;">
+                        <span style="font-size:0.85rem; color:#64748b; display:block; font-weight: 700;">Percobaan 1</span>
+                        <b style="color:var(--primary); font-size:1.4rem;">${scoreP1} <span style="font-size:0.9rem; color:#94a3b8;">/ ${maxPerPercobaan}</span></b>
+                    </div>
+                    <div style="width: 1px; height: 40px; background: #cbd5e1;"></div>
+                    <div style="text-align: center;">
+                        <span style="font-size:0.85rem; color:#64748b; display:block; font-weight: 700;">Percobaan 2</span>
+                        <b style="color:#D84315; font-size:1.4rem;">${scoreP2} <span style="font-size:0.9rem; color:#94a3b8;">/ ${maxPerPercobaan}</span></b>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <span style="font-size:0.95rem; color:#64748b; font-weight: 700;">Total Skor: </span>
+                    <b style="font-size:1.2rem; color: #334155; background: #e2e8f0; padding: 4px 12px; border-radius: 8px;">${nilaiAkhir} / ${nilaiMaksimal}</b>
+                </div>
+
+                <button class="btn btn-tertiary" onclick="kembaliKeDaftarSiswaDinilai()" style="margin-bottom:0; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">➔ Kembali</button>
+            </div>
+        `;
     }
+
+    // Fungsi baru untuk menangani navigasi balik secara manual
+    function kembaliKeDaftarSiswaDinilai() {
+        renderSiswaAsesmen(); 
+        let prev = state.history.pop(); 
+        showPage(prev.id, prev.title);
+    }
+
 
     // --- HASIL EVALUASI (BUKU INDUK) ---
     function renderHasil() {
@@ -517,27 +699,130 @@
 
     // --- DETAIL EVALUASI SISWA (PROFIL + DATATABLES) ---
     let detailDataTable;
+    /*
     function bukaDetailSiswa(idSiswa) {
         let s = db.siswa.find(x => (x.id_siswa || x.id) === idSiswa); if(!s) return;
         let namaReal = s.nama_siswa || s.nama, absenReal = s.absen || '-', kelasReal = s.kelas || '-';
-        let nLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] + '%' : '-';
-        let nNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] + '%' : '-';
-        let nMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] + '%' : '-';
+        
+        let numLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] : 0;
+        let numNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] : 0;
+        let numMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] : 0;
 
+        let pLoko = getKategoriPredikat(numLoko);
+        let pNon = getKategoriPredikat(numNon);
+        let pMan = getKategoriPredikat(numMan);
+
+        // -- UPDATE UI RESPONSIVE: Menggunakan max-width calc dan padding yang lebih rapat --
         document.getElementById('detailSiswaProfil').innerHTML = `
             <div style="text-align: center; margin-bottom: 25px;">
                 <div style="font-size: 3.5rem; background: var(--bg-color); width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.2);">👤</div>
                 <h3 style="color: var(--text-main); font-size: 1.5rem; font-weight: 900; margin-bottom: 5px;">${namaReal}</h3>
                 <p style="color: var(--text-light); font-size: 1rem; font-weight: 600;">No. Absen: <b style="color:var(--primary);">${absenReal}</b> | Kelas: <b style="color:var(--primary);">${kelasReal}</b></p>
             </div>
-            <div style="display: flex; justify-content: space-between; background: #fff; padding: 20px 10px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--primary-light);">
-                <div style="text-align: center; flex: 1; border-right: 1px solid #f0f0f0;"><div style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">${nLoko}</div><div style="font-size: 0.8rem; color: #888; font-weight: 800; margin-top:3px;">Loko</div></div>
-                <div style="text-align: center; flex: 1; border-right: 1px solid #f0f0f0;"><div style="font-size: 1.4rem; font-weight: 900; color: var(--secondary);">${nNon}</div><div style="font-size: 0.8rem; color: #888; font-weight: 800; margin-top:3px;">Non-Loko</div></div>
-                <div style="text-align: center; flex: 1;"><div style="font-size: 1.4rem; font-weight: 900; color: var(--tertiary);">${nMan}</div><div style="font-size: 0.8rem; color: #888; font-weight: 800; margin-top:3px;">Manipulatif</div></div>
+            
+            <div style="display: flex; gap: 8px; justify-content: space-between; background: #fff; padding: 15px 5px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--primary-light); width: 100%; box-sizing: border-box;">
+                
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%;">Lokomotor</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pLoko.warna}; line-height: 1;">${numLoko}%</div>
+                        <div class="truncate-text" style="font-size: 0.65rem; color: ${pLoko.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%;">${pLoko.icon} ${pLoko.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Lokomotor')">Rincian</button>
+                </div>
+
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%;">Non-Loko</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pNon.warna}; line-height: 1;">${numNon}%</div>
+                        <div class="truncate-text" style="font-size: 0.65rem; color: ${pNon.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%;">${pNon.icon} ${pNon.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Non Lokomotor')">Rincian</button>
+                </div>
+
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%;">Manipulatif</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pMan.warna}; line-height: 1;">${numMan}%</div>
+                        <div class="truncate-text" style="font-size: 0.65rem; color: ${pMan.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%;">${pMan.icon} ${pMan.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Manipulatif')">Rincian</button>
+                </div>
+
             </div>
         `;
 
         if ($.fn.DataTable.isDataTable('#tabelDetailSiswa')) $('#tabelDetailSiswa').DataTable().destroy();
+        let tbody = document.querySelector('#tabelDetailSiswa tbody'); tbody.innerHTML = '';
+        
+        let riwayatSiswa = db.asesmen.filter(a => a.idSiswa === idSiswa);
+        riwayatSiswa.forEach((a, idx) => {
+            tbody.innerHTML += `<tr><td>${idx + 1}</td><td style="color:#666; font-weight:bold;">${a.tanggal.split(',')[0]}</td><td><strong style="color:var(--text-main); font-size:0.95rem;">${a.sub}</strong><br><span style="font-size:0.75rem; color:var(--text-light);">${a.kategori}</span></td><td style="font-weight:900; color:var(--primary); text-align:center; font-size:1.1rem;">${a.nilai}/${a.maxNilai}</td></tr>`;
+        });
+
+        detailDataTable = $('#tabelDetailSiswa').DataTable({
+            order: [[1, 'desc']], dom: '<"top"Bf>rt<"bottom"p><"clear">',
+            buttons: [{ extend: 'excelHtml5', text: '📥 Unduh Excel', title: 'Riwayat_Evaluasi_DIASFUNTORS_' + namaReal }],
+            language: { search: "Saring Data:", emptyTable: "Belum ada riwayat asesmen.", paginate: { next: "▶", previous: "◀" } },
+            pageLength: 5, lengthChange: false, info: false
+        });
+        navigate('page-detail-siswa', 'Rapor Siswa');
+    }
+    */
+    function bukaDetailSiswa(idSiswa) {
+        let s = db.siswa.find(x => (x.id_siswa || x.id) === idSiswa); if(!s) return;
+        let namaReal = s.nama_siswa || s.nama, absenReal = s.absen || '-', kelasReal = s.kelas || '-';
+        
+        let numLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] : 0;
+        let numNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] : 0;
+        let numMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] : 0;
+
+        let pLoko = getKategoriPredikat(numLoko);
+        let pNon = getKategoriPredikat(numNon);
+        let pMan = getKategoriPredikat(numMan);
+
+        // -- UPDATE UI: Menambahkan atribut 'title' untuk Tooltip bawaan browser --
+        document.getElementById('detailSiswaProfil').innerHTML = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 3.5rem; background: var(--bg-color); width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.2);">👤</div>
+                <h3 style="color: var(--text-main); font-size: 1.5rem; font-weight: 900; margin-bottom: 5px;">${namaReal}</h3>
+                <p style="color: var(--text-light); font-size: 1rem; font-weight: 600;">No. Absen: <b style="color:var(--primary);">${absenReal}</b> | Kelas: <b style="color:var(--primary);">${kelasReal}</b></p>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: space-between; background: #fff; padding: 15px 5px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--primary-light); width: 100%; box-sizing: border-box;">
+                
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" title="Lokomotor" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Lokomotor</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pLoko.warna}; line-height: 1;">${numLoko}%</div>
+                        <div class="truncate-text" title="${pLoko.teks}" style="font-size: 0.65rem; color: ${pLoko.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pLoko.icon} ${pLoko.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Lokomotor')">Rincian</button>
+                </div>
+
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" title="Non Lokomotor" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Non-Loko</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pNon.warna}; line-height: 1;">${numNon}%</div>
+                        <div class="truncate-text" title="${pNon.teks}" style="font-size: 0.65rem; color: ${pNon.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pNon.icon} ${pNon.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Non Lokomotor')">Rincian</button>
+                </div>
+
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;">
+                        <div class="truncate-text" title="Manipulatif" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Manipulatif</div>
+                        <div style="font-size: 1.35rem; font-weight: 900; color: ${pMan.warna}; line-height: 1;">${numMan}%</div>
+                        <div class="truncate-text" title="${pMan.teks}" style="font-size: 0.65rem; color: ${pMan.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pMan.icon} ${pMan.teks}</div>
+                    </div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Manipulatif')">Rincian</button>
+                </div>
+
+            </div>
+        `;
+
+        if ($.fn.DataTable.isDataTable('#tabelDetailSiswa')) $('#tabelDetailSiswa').DataTable().destroy();
+        
         let tbody = document.querySelector('#tabelDetailSiswa tbody'); tbody.innerHTML = '';
         
         let riwayatSiswa = db.asesmen.filter(a => a.idSiswa === idSiswa);
@@ -594,7 +879,87 @@
             handleBack();
         }
     }
+
+    // Fungsi untuk mendapatkan predikat, warna, dan icon otomatis
+    function getKategoriPredikat(persentase) {
+        if (persentase >= 85) return { teks: "Sangat Baik", warna: "#2E7D32", icon: "⭐" };
+        if (persentase >= 70) return { teks: "Baik", warna: "#1976D2", icon: "👍" };
+        if (persentase >= 55) return { teks: "Cukup", warna: "#F57C00", icon: "⚖️" };
+        return { teks: "Perlu Bimbingan", warna: "#D32F2F", icon: "⚠️" };
+    }
+
+    // Fungsi untuk membuka pop-up rincian per kategori
+    function bukaRincianKategori(idSiswa, kategori) {
+        document.getElementById('judulModalRincian').innerText = "Rincian " + kategori;
+        
+        // Ambil riwayat khusus siswa dan kategori ini
+        let riwayat = db.asesmen.filter(a => a.idSiswa === idSiswa && a.kategori === kategori);
+        
+        if(riwayat.length === 0) {
+            document.getElementById('kontenModalRincian').innerHTML = `<p style="text-align:center; color:#888;">Belum ada data asesmen untuk ${kategori}.</p>`;
+            document.getElementById('modalRincian').classList.add('active');
+            return;
+        }
+
+        // Filter untuk mengambil tes TERBARU per sub-materi (mencegah data ganda jika diuji berkali-kali)
+        let tesTerbaru = {}; 
+        riwayat.forEach(a => { tesTerbaru[a.sub] = a; });
+        
+        let totalNilai = 0;
+        let totalMax = 0;
+        let barisTabel = '';
+        let no = 1;
+
+        // Susun baris tabel
+        Object.values(tesTerbaru).forEach(a => {
+            totalNilai += a.nilai;
+            totalMax += a.maxNilai;
+            barisTabel += `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">${no++}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; color: var(--text-main); font-weight: 700;">${a.sub}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-weight: 900; color: var(--primary); text-align: center;">${a.nilai}</td>
+                </tr>`;
+        });
+
+        // Bentuk desain visual sesuai gambar
+        let htmlRincian = `
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: var(--primary-light); color: var(--primary-dark);">
+                        <th style="padding: 12px 10px; text-align: left; border-radius: 10px 0 0 0;">No</th>
+                        <th style="padding: 12px 10px; text-align: left;">Gerakan</th>
+                        <th style="padding: 12px 10px; text-align: center; border-radius: 0 10px 0 0;">Skor</th>
+                    </tr>
+                </thead>
+                <tbody>${barisTabel}</tbody>
+            </table>
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.5rem;">📊</div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">TOTAL SKOR ${kategori.toUpperCase()}</div>
+                    <div style="font-size: 1.1rem; font-weight: 900; color: var(--text-main);">Total = ${totalNilai}</div>
+                </div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.5rem;">✅</div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">SKOR MAKSIMAL</div>
+
+                    <div style="font-size: 1.1rem; font-weight: 900; color: var(--text-main);">
+                        Total = ${totalMax}
+                    </div>
+            </div>
+        `;
+
+        document.getElementById('kontenModalRincian').innerHTML = htmlRincian;
+        document.getElementById('modalRincian').classList.add('active');
+    }
+
 showPage('page-login', 'DIASFUNTORS')
+
 </script>
 </body>
 </html>
