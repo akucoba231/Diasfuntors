@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIASFUNTORS</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+    <style>
+        :root {
+            var(--primary): #6C63FF;
+            var(--primary-dark): #5A52D5;
+            var(--primary-light): #E2E1FF;
+            var(--secondary): #FFB86C;
+            var(--tertiary): #00B8D4;
+            var(--danger): #FF6B6B;
+            var(--bg-color): #F4F7F9;
+            var(--card-bg): rgba(255,255,255,.7);
+            var(--text-main): #2D3748;
+            var(--text-light): #718096;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', 'Segoe UI', Tahoma, sans-serif; }
+        body { background-color: #cfd8dc; display: flex; justify-content: center; color: #2D3748; }
+        .phone-wrapper { width: 100%; max-width: 414px; min-height: 100vh; background-color: #F4F7F9; position: relative; overflow-x: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; 
+          background: url('assets/background.png') no-repeat center center;
+          background-size: cover;
+        }
+        @media (max-width: 414px) { .phone-wrapper { box-shadow: none; max-width: 100%; } }
+
+        .header { background: linear-gradient(135deg, #6C63FF 0%, #00B8D4 100%); color: white; padding: 15px; min-height: 70px; display: flex; align-items: center; justify-content: center; position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+        .header .back-btn { position: absolute; left: 15px; background: rgba(255, 255, 255, 0.25); border: none; color: white; font-size: 1.2rem; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: none; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .header .back-btn:active { background: rgba(255, 255, 255, 0.4); transform: scale(0.95); }
+        .logo-container { text-align: center; display: flex; flex-direction: column; align-items: center; width: 100%; }
+        
+        .header-title { font-size: 1.25rem; font-weight: 800; letter-spacing: 1.5px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+
+        .page { display: none; padding: 20px; flex: 1; overflow-y: auto; animation: fadeIn 0.3s ease-in-out; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        input { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 2px solid #E2E1FF; font-size: 1rem; outline: none; transition: 0.3s; background-color: #fafafa; }
+        input:focus { border-color: #6C63FF; background-color: rgba(255,255,255,.7); box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2); }
+        button.btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: all 0.2s; margin-bottom: 10px; }
+        button.btn:active { transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        .btn-primary { background-color: #6C63FF; }
+        .btn-secondary { background-color: #FFB86C; color: #5D4037; }
+        .btn-tertiary { background-color: #00B8D4; }
+        .btn-danger { background-color: #FF6B6B; }
+
+        .card { background: rgba(255,255,255,.9); padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid rgba(108, 99, 255, 0.08); }
+        
+        .modal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(45,55,72,0.6); z-index: 100; justify-content: center; align-items: flex-start; padding: 20px; backdrop-filter: blur(3px); }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+        .modal-content { background: white; width: 100%; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-top: 6px solid #6C63FF; }
+
+        .truncate-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .instruction-box { background-color: #E0F7FA; border: 1px solid #B2EBF2; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .instruction-box h5 { color: #00838F; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; font-size: 1rem; }
+        .instruction-box p { font-size: 0.9rem; color: #37474F; line-height: 1.5; }
+
+        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .menu-item { background: rgba(255,255,255,.8); border: 2px solid #E2E1FF; border-radius: 16px; padding: 18px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(108, 99, 255, 0.05); transition: 0.2s; color: #2D3748; font-weight: 800; text-align: center; }
+        .menu-item:active { background: #6C63FF; color: white; border-color: #5A52D5; transform: scale(0.98); }
+        .menu-item .icon { font-size: 2.8rem; margin-bottom: 10px; }
+        
+        .menu-item-sub {
+          aspect-ratio: 1/1;
+          position: relative;
+        }
+        
+        .menu-item-sub img {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          z-index: 2;
+          border-radius: inherit;
+        }
+        
+        .menu-item-sub span {
+          width: 90%;
+          position: absolute;
+          word-break: normal;
+          font-size: 0.8em;
+          text-shadow: 0px 0px 3px #fff;
+          transform: translateX(-50%);
+          bottom: 0;
+          left: 50%;
+          z-index: 3;
+        }
+
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; margin-bottom: 12px; border-radius: 12px; border-left: 6px solid #00B8D4; box-shadow: 0 4px 10px rgba(0,0,0,0.03); font-weight: bold; }
+        
+        .title-section { text-align: center; margin-bottom: 20px; color: white; text-shadow: 0px 0px 2px #000; font-weight: 800; font-size: 1.3rem; }
+        .badge { background: #FFB86C; color: #fff; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; text-shadow: 1px 1px 1px rgba(0,0,0,0.1); }
+        .badge-nilai { background: #f1f5f9; color: #475569; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; border: 1px solid #e2e8f0; margin-right: 6px;}
+
+        /* DataTables Customization */
+        .dataTables_wrapper { font-size: 0.85rem; }
+        table.dataTable tbody td { padding: 10px 5px; vertical-align: middle; border-bottom: 1px solid #f0f0f0; }
+        .dt-buttons .dt-button { background-color: #00B8D4 !important; color: white !important; border: none !important; border-radius: 8px !important; padding: 8px 15px !important; font-weight: bold !important; margin-bottom: 15px !important; box-shadow: 0 2px 5px rgba(0,184,212,0.3) !important; }
+        .dataTables_filter input { margin-bottom: 0 !important; width: auto !important; padding: 6px 10px !important; border-radius: 8px !important; border: 1px solid #E2E1FF !important; }
+        
+        .logo { width: 100%; }
+        .compress { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 55%; }
+        .hidden { visibility: hidden; }
+        
+        .tutup-asesmen {
+          margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-wrapper">
+    <div class="header">
+        <button class="back-btn" id="btnBack" onclick="handleBack()">&#10094;</button>
+        <div class="logo-container">
+            <img id="headerLogoImg" class="logo" src="assets/logo.png" alt="Logo Aplikasi" style="height: 40px; display: none; object-fit: contain;" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x50/ffffff/6c63ff?text=LOGO.PNG';">
+            
+            <div id="headerTextContainer">
+                <div class="header-title" id="headerTitle">DIASFUNTORS</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOM ALERT (Pengganti alert() bawaan) -->
+    <div id="modalCustomAlert" class="modal-overlay" style="z-index: 9999;">
+        <div class="modal-content" style="text-align: center; max-width: 320px; margin: auto;">
+            <h3 id="customAlertTitle" style="color: #6C63FF; margin-bottom: 15px;">Info</h3>
+            <p id="customAlertMessage" style="color: #2D3748; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;"></p>
+            <button class="btn btn-primary" style="margin-bottom: 0;" onclick="tutupCustomAlert()">Baik</button>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOM CONFIRM (Pengganti confirm() bawaan) -->
+    <div id="modalCustomConfirm" class="modal-overlay" style="z-index: 9999;">
+        <div class="modal-content" style="text-align: center; max-width: 320px; margin: auto;">
+            <h3 id="customConfirmTitle" style="color: #6C63FF; margin-bottom: 15px;">Konfirmasi</h3>
+            <p id="customConfirmMessage" style="color: #2D3748; margin-bottom: 20px; font-size: 0.95rem; line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 0;" onclick="tutupCustomConfirm(false)">Batal</button>
+                <button class="btn btn-primary" style="margin-bottom: 0;" onclick="tutupCustomConfirm(true)">Yakin</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalSiswa" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalSiswaTitle" style="color: #6C63FF; margin-bottom: 20px; text-align: center; font-weight: 800;">Tambah Siswa</h3>
+            <input type="hidden" id="formSiswaId">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #666;">Nama Lengkap*</label>
+            <input type="text" id="formSiswaNama" placeholder="Contoh: Budi Santoso">
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;"><label style="font-size: 0.85rem; font-weight: bold; color: #666;">No. Absen</label><input type="number" id="formSiswaAbsen" placeholder="12"></div>
+                <div style="flex: 1;"><label style="font-size: 0.85rem; font-weight: bold; color: #666;">Kelas</label><input type="text" id="formSiswaKelas" placeholder="5-A"></div>
+            </div>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #666;">Asal Sekolah</label>
+            <input type="text" id="formSiswaSekolah" placeholder="SDN 1 Nusantara">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn" style="background: #e2e8f0; color: #475569; margin-bottom: 0;" onclick="tutupModalSiswa()">Batal</button>
+                <button class="btn btn-primary" style="margin-bottom: 0;" onclick="simpanSiswa()">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-home" class="page">
+        <div style="text-align: center; margin: 30px 0;">
+          <img class="logo" src="assets/logo.png" alt="logo-aplikasi" />
+        </div>
+        <div class="card" style="border-top: 5px solid #FFB86C; background: transparent; border: none;">
+            
+            <button class="btn btn-primary" style="margin-top: 10px; padding: 16px;" onclick="showPage('page-login','DIASFUNTORS')">MASUK</button>
+        </div>
+    </div>
+
+    <div id="page-login" class="page">
+        <div style="text-align: center; margin: 30px 0;">
+          <img class="logo" src="assets/logo.png" alt="logo-aplikasi" />
+        </div>
+        <div class="card" style="border-top: 5px solid #FFB86C;">
+            <input type="text" id="loginUsername" placeholder="Username (admin)">
+            <input type="password" id="loginPassword" placeholder="Password (admin)">
+            <button class="btn btn-primary" style="margin-top: 10px; padding: 16px;" onclick="login()">LOGIN MASUK</button>
+        </div>
+    </div>
+
+    <div id="page-dashboard" class="page">
+        <img class="logo compress" src="assets/logo.png" alt="logo-aplikasi" />
+        <h3 class="title-section">Menu Utama Dasbor</h3>
+        <div class="grid-menu">
+            <div class="menu-item" onclick="navigate('page-pilih-kategori', 'Asesmen')"><div class="icon">📝</div><span>Asesmen</span></div>
+            <div class="menu-item" onclick="navigate('page-hasil', 'Buku Induk Evaluasi'); renderHasil()"><div class="icon">📊</div><span>Hasil Evaluasi</span></div>
+            <div class="menu-item" onclick="navigate('page-laporan', 'Laporan'); renderLaporan()"><div class="icon">📑</div><span>Laporan</span></div>
+            <div class="menu-item" onclick="navigate('page-siswa', 'Daftar Siswa'); renderSiswa()"><div class="icon">👥</div><span>Daftar Siswa</span></div>
+            <div class="menu-item" onclick="navigate('page-panduan', 'Panduan')"><div class="icon">📖</div><span>Panduan</span></div>
+            <div class="menu-item" onclick="navigate('page-pengaturan', 'Pengaturan'); loadPengaturan()"><div class="icon">⚙️</div><span>Pengaturan</span></div>
+        </div>
+        <button class="btn btn-danger" style="margin-top: 25px; opacity: 0.9;" onclick="logout()">Keluar Aplikasi</button>
+    </div>
+
+    <div id="page-siswa" class="page">
+        <button class="btn btn-primary" style="margin-bottom: 20px; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.3);" onclick="bukaModalSiswa()">➕ Tambah Siswa Baru</button>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;"><h4 style="color: #fff; text-shadow: 0px 0px 2px #000; font-weight: 800;">Basis Data Siswa</h4><span style="font-size: 0.85rem; color: #fff; text-shadow: 0px 0px 2px #000; font-weight: bold;" id="totalSiswaBadge">Total: 0</span></div>
+        <div id="listSiswaContainer"></div>
+    </div>
+
+    <div id="page-pilih-kategori" class="page">
+        <p style="text-align: center; margin-bottom: 25px; color: #718096; font-weight: 600;">Pilih Unit Gerak Dasar yang akan dinilai:</p>
+        <div class="grid-menu" style="grid-template-columns: 1fr;">
+            <div class="menu-item" style="flex-direction: row; justify-content: flex-start; gap: 20px; border-color: #6C63FF;" onclick="pilihKategori('Lokomotor')"><div class="icon" style="margin:0;">🏃‍♂️</div> <span style="font-size: 1.25rem;">Lokomotor</span></div>
+            <div class="menu-item" style="flex-direction: row; justify-content: flex-start; gap: 20px; border-color: #FFB86C;" onclick="pilihKategori('Non Lokomotor')"><div class="icon" style="margin:0;">🧘‍♀️</div> <span style="font-size: 1.25rem;">Non Lokomotor</span></div>
+            <div class="menu-item" style="flex-direction: row; justify-content: flex-start; gap: 20px; border-color: #00B8D4;" onclick="pilihKategori('Manipulatif')"><div class="icon" style="margin:0;">⚽</div> <span style="font-size: 1.25rem;">Manipulatif</span></div>
+        </div>
+    </div>
+
+    <div id="page-pilih-sub" class="page">
+        <h3 class="title-section" id="judulKategori">Pilih Tes</h3>
+        <div class="grid-menu" id="listSubMateri"></div>
+    </div>
+
+    <!-- HALAMAN ABSENSI BARU -->
+    <div id="page-absensi" class="page">
+        <div class="card" style="background: linear-gradient(135deg, #00B8D4 0%, #0097A7 100%); color: white; border: none; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,184,212,0.3);">
+            Materi: <strong id="lblMateriAbsensi" style="font-size: 1.1rem; display: block; margin-top: 5px;"></strong>
+        </div>
+        <h4 style="margin-bottom: 15px; color: #2D3748; font-weight: 800;">Absensi Siswa:</h4>
+        <div id="listAbsensiContainer"></div>
+        <button class="btn btn-primary" style="margin-top: 20px; padding: 16px; font-size: 1.15rem;" onclick="simpanAbsensiDanLanjut()">LANJUT PENILAIAN</button>
+    </div>
+
+    <div id="page-pilih-siswa-asesmen" class="page">
+        <div class="card" style="background: linear-gradient(135deg, #00B8D4 0%, #0097A7 100%); color: white; border: none; padding: 18px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,184,212,0.3);">
+            Materi Penilaian: <strong id="lblMateriAktif" style="font-size: 1.1rem; display: block; margin-top: 5px;"></strong>
+        </div>
+        <h4 style="margin-bottom: 15px; color: #2D3748; font-weight: 800;">Pilih Siswa yang Dinilai:</h4>
+        <div id="listSiswaAsesmenContainer"></div>
+    </div>
+
+    <div id="page-form-asesmen" class="page">
+        <div class="card" style="border-top: 6px solid #6C63FF;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center;"><h3 id="namaSiswaDinilai" class="truncate-text" style="color: #6C63FF; font-weight: 800; max-width: 60%;"></h3><span class="badge" id="materiDinilai"></span></div>
+            <div class="instruction-box"><h5>💡 Petunjuk Guru</h5><p id="instruksiGuruText"></p></div>
+            <p style="margin-bottom: 15px; font-size: 0.95rem; color: #718096; font-weight: bold;">Centang indikator gerak yang dikuasai:</p>
+            <div id="kriteriaContainer"></div>
+            <button class="btn btn-primary" style="margin-top: 20px; padding: 16px; font-size: 1.15rem;" onclick="simpanAsesmen()">SIMPAN PENILAIAN</button>
+        </div>
+    </div>
+
+    <div id="page-hasil" class="page">
+        <p style="text-align: center; margin-bottom: 20px; color: #fff; text-shadow: 0px 0px 2px #000; font-weight: 600;">Pilih nama siswa untuk melihat rincian evaluasi gerak dasarnya.</p>
+        <div id="listHasilContainer"></div>
+    </div>
+
+    <div id="page-detail-siswa" class="page">
+        <div class="card" id="detailSiswaProfil" style="padding: 30px 20px; border-top: 6px solid #6C63FF;">
+            </div>
+        <div class="card" style="padding: 20px 10px;">
+            <h4 style="margin-bottom: 15px; padding-left: 5px; color: #2D3748; font-weight: 800;">Riwayat Asesmen</h4>
+            <div style="overflow-x: auto;">
+                <table id="tabelDetailSiswa" class="display" style="width:100%">
+                    <thead><tr><th>No</th><th>Tanggal</th><th>Materi</th><th>Skor</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-laporan" class="page">
+        <div class="card" style="border-left: 5px solid #FFB86C;">
+            <h4 style="margin-bottom: 15px; color: #2D3748; font-weight: 800;">Saring & Ekspor</h4>
+            <label style="font-size: 0.9rem; font-weight: bold; color: #555;">Pilih Tanggal Asesmen:</label>
+            <input type="date" id="filterTanggalDT" style="padding: 12px; border-radius: 8px;">
+            <button class="btn btn-secondary" style="color: white; box-shadow: 0 4px 10px rgba(255, 184, 108, 0.4);" onclick="resetFilterDT()">🔄 Reset Saringan</button>
+        </div>
+        <div class="card" style="padding: 15px 10px;">
+            <div style="overflow-x: auto;">
+                <table id="tabelDataLaporan" class="display" style="width:100%">
+                    <thead><tr><th>Waktu</th><th>Siswa</th><th>Materi</th><th>Skor</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-panduan" class="page">
+        <div class="card">
+            <h3 style="color: #6C63FF; margin-bottom: 20px; text-align: center; font-weight: 900;">Buku Panduan<br>DIASFUNTORS</h3>
+            <ol style="padding-left: 20px; line-height: 1.8; color: #2D3748; font-weight: 600;">
+                <li>Buka menu <b style="color: #6C63FF;">Daftar Siswa</b> untuk menambahkan basis data siswa terlebih dahulu.</li>
+                <li>Gunakan menu <b style="color: #FFB86C;">Asesmen</b> untuk memulai penilaian tes gerak.</li>
+                <li>Pilih kategori, unit materi, dan isi <b style="color: #00B8D4;">Absensi Kehadiran</b> siswa.</li>
+                <li>Siswa yang diisi Izin/Sakit/Alfa akan otomatis dinilai 0. Hanya siswa yang Masuk yang lanjut ke proses penilaian.</li>
+                <li>Centang indikator yang dikuasai lalu Simpan.</li>
+                <li>Lihat rekap perolehan nilai setiap siswa pada menu <b style="color: #00B8D4;">Hasil Evaluasi</b>.</li>
+                <li>Gunakan fitur saring tanggal dan unduh Excel pada menu <b style="color: #6C63FF;">Laporan</b>.</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="modalRincian" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="judulModalRincian" style="color: #6C63FF; margin-bottom: 20px; text-align: center; font-weight: 900; text-transform: uppercase;"></h3>
+            <div id="kontenModalRincian" style="margin-bottom: 20px;"></div>
+            <button class="btn btn-primary" onclick="document.getElementById('modalRincian').classList.remove('active')">TUTUP RINCIAN</button>
+        </div>
+    </div>
+
+    <div id="page-pengaturan" class="page">
+        <div class="card" style="border-top: 5px solid #6C63FF;">
+            <h3 style="color: #6C63FF; margin-bottom: 20px; text-align: center; font-weight: 800;">Pengaturan Akun</h3>
+            <label style="font-weight: bold; font-size: 0.9rem; color: #666;">Username Akses</label><input type="text" id="setUname">
+            <label style="font-weight: bold; font-size: 0.9rem; color: #666;">Password Akses</label><input type="password" id="setPass">
+            <label style="font-weight: bold; font-size: 0.9rem; color: #666;">Nama Guru Penilai</label><input type="text" id="setNamaGuru">
+            <label style="font-weight: bold; font-size: 0.9rem; color: #666;">Asal Sekolah</label><input type="text" id="setSekolah">
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="simpanPengaturan()">SIMPAN PERUBAHAN</button>
+        </div>
+
+        <div class="card" style="border: 2px solid #FF6B6B; margin-top: 25px; background: #FFF5F5;">
+            <h3 style="color: #FF6B6B; margin-bottom: 10px; text-align: center; font-weight: 800;">Zona Berbahaya</h3>
+            <p style="font-size: 0.85rem; color: #C53030; margin-bottom: 15px; text-align: center; font-weight: 600;">Tindakan ini akan <b style="text-decoration: underline;">menghapus seluruh Riwayat Asesmen</b> secara permanen. Data profil Siswa tidak akan ikut terhapus.</p>
+            <button class="btn btn-danger" onclick="hapusSemuaRiwayat()">⚠️ Hapus Semua Riwayat</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="dataMateri.js"></script>
+
+<script>
+    let db = {
+        siswa: JSON.parse(localStorage.getItem('fms_siswa')) || [],
+        asesmen: JSON.parse(localStorage.getItem('fms_asesmen')) || [],
+        pengaturan: JSON.parse(localStorage.getItem('fms_pengaturan')) || { uname: 'admin', pass: 'admin', nama: 'Guru Olahraga', sekolah: 'SD Negeri' }
+    };
+
+    let state = { 
+      history: [], 
+      currentPage: 'page-login', 
+      tempAsesmen: { id_materi: '', jenis_materi: '', nama_materi: '', idSiswa: null, namaSiswa: '' },
+      dinilaiSesiIni : [],
+      absensiSesiIni: {} // Menyimpan absensi: { idSiswa: 'Masuk'|'Izin'|'Sakit'|'Alfa' }
+    };
+
+    // --- CUSTOM ALERT & CONFIRM ---
+    let customAlertAction = null;
+    function showCustomAlert(title, message, action = null) {
+        document.getElementById('customAlertTitle').innerText = title;
+        document.getElementById('customAlertMessage').innerText = message;
+        customAlertAction = action;
+        document.getElementById('modalCustomAlert').classList.add('active');
+    }
+    function tutupCustomAlert() {
+        document.getElementById('modalCustomAlert').classList.remove('active');
+        if (customAlertAction) customAlertAction();
+    }
+
+    let customConfirmAction = null;
+    function showCustomConfirm(title, message, action) {
+        document.getElementById('customConfirmTitle').innerText = title;
+        document.getElementById('customConfirmMessage').innerText = message;
+        customConfirmAction = action;
+        document.getElementById('modalCustomConfirm').classList.add('active');
+    }
+    function tutupCustomConfirm(isConfirmed) {
+        document.getElementById('modalCustomConfirm').classList.remove('active');
+        if (isConfirmed && customConfirmAction) {
+            customConfirmAction();
+        }
+    }
+
+    // --- AUTO-PATCH & UPDATE NILAI ---
+    window.onload = function() {
+        let needsUpdate = false;
+        db.siswa.forEach(s => { if (!s.nilai) { updateNilaiSiswaLatarBelakang(s.id_siswa || s.id); needsUpdate = true; } });
+        if(needsUpdate) { localStorage.setItem('fms_siswa', JSON.stringify(db.siswa)); }
+    };
+
+    function updateNilaiSiswaLatarBelakang(idSiswa) {
+        let sIndex = db.siswa.findIndex(s => (s.id_siswa || s.id) === idSiswa); if(sIndex === -1) return;
+        let s = db.siswa[sIndex]; if(!s.nilai) s.nilai = { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 };
+        
+        ['Lokomotor', 'Non Lokomotor', 'Manipulatif'].forEach(kat => {
+            let asesmenKat = db.asesmen.filter(a => a.idSiswa === idSiswa && a.kategori === kat);
+            if(asesmenKat.length > 0) {
+                let tesTerbaru = {}; 
+                asesmenKat.forEach(a => { let k = a.id_materi || a.sub; tesTerbaru[k] = a; });
+                let totalNilai = 0, totalMax = 0; 
+                Object.values(tesTerbaru).forEach(a => { totalNilai += a.nilai; totalMax += a.maxNilai; });
+                s.nilai[kat] = Math.round((totalNilai / totalMax) * 100) || 0;
+            } else { s.nilai[kat] = 0; }
+        });
+        db.siswa[sIndex] = s;
+    }
+
+    function updateNilaiSiswa(idSiswa) {
+        updateNilaiSiswaLatarBelakang(idSiswa);
+        localStorage.setItem('fms_siswa', JSON.stringify(db.siswa));
+    }
+
+    // --- NAVIGATION LOGIC ---
+    function navigate(pageId, title = 'DIASFUNTORS') {
+        if(state.currentPage !== 'page-login') state.history.push({ id: state.currentPage, title: document.getElementById('headerTitle').innerText });
+        showPage(pageId, title);
+    }
+
+    function showPage(pageId, title) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        state.currentPage = pageId;
+
+        const btnBack = document.getElementById('btnBack');
+        const headerLogoImg = document.getElementById('headerLogoImg');
+        const headerTextContainer = document.getElementById('headerTextContainer');
+
+        let tmp = headerLogoImg.parentNode.parentNode
+        
+        if (pageId === 'page-home' || pageId === 'page-login' || pageId === 'page-dashboard' || pageId === 'page-pilih-siswa-asesmen') { 
+            btnBack.style.display = 'none'; 
+            state.history = []; 
+            tmp.style.visibility = 'hidden';
+            headerTextContainer.style.display = 'none';
+            if(pageId === "page-pilih-siswa-asesmen"){
+            tmp.style.visibility = 'visible';
+            headerTextContainer.style.display = 'flex';
+            }
+        } else { 
+            tmp.style.visibility = 'visible';
+            btnBack.style.display = 'flex'; 
+            headerLogoImg.style.display = 'none';
+            headerTextContainer.style.display = 'flex';
+            document.getElementById('headerTitle').innerText = 'DIASFUNTORS'; 
+        }
+    }
+
+    function handleBack() {
+        if (state.currentPage === 'page-form-asesmen') {
+            return showCustomConfirm('Batal Penilaian', 'Data penilaian belum disimpan. Anda yakin ingin kembali?', goBackCore);
+        }
+        if (state.currentPage === 'page-pilih-siswa-asesmen') {
+            return showCustomConfirm('Tutup Asesmen', 'Apakah Anda yakin menutup halaman asesmen?', goBackCore);
+        }
+        if (state.currentPage === 'page-absensi') {
+            return showCustomConfirm('Batal Absensi', 'Data absensi belum disimpan. Anda yakin ingin kembali?', goBackCore);
+        }
+        goBackCore();
+    }
+
+    function goBackCore() {
+        if (state.history.length > 0) { 
+            let prev = state.history.pop(); 
+            showPage(prev.id, prev.title); 
+        } else { 
+            showPage('page-dashboard', 'Menu Utama'); 
+        }
+    }
+
+    // --- LOGIN & LOGOUT ---
+    function login() {
+        let u = document.getElementById('loginUsername').value, p = document.getElementById('loginPassword').value;
+        if ((u === db.pengaturan.uname && p === db.pengaturan.pass) || (u === 'admin' && p === 'admin')) {
+            showCustomAlert('Login Berhasil', 'Anda akan dialihkan ke halaman daftar siswa.', () => {
+                navigate('page-siswa', 'Daftar Siswa');
+                renderSiswa();
+            });
+        } else {
+            showCustomAlert('Akses Ditolak', 'Username atau Password yang Anda masukkan salah!');
+        }
+    }
+
+    function logout() {
+        showCustomConfirm('Keluar Aplikasi', 'Apakah Anda yakin ingin keluar?', () => { 
+            showPage('page-home', 'DIASFUNTORS'); 
+            document.getElementById('loginUsername').value = ''; 
+            document.getElementById('loginPassword').value = ''; 
+        });
+    }
+
+    // --- SISWA CRUD ---
+    function renderSiswa() {
+        let container = document.getElementById('listSiswaContainer'); container.innerHTML = '';
+        document.getElementById('totalSiswaBadge').innerText = `Total: ${db.siswa.length}`;
+        if(db.siswa.length === 0) { container.innerHTML = '<div class="card" style="text-align:center; color:#888;">Data siswa masih kosong.</div>'; return; }
+        
+        const colors = ['#6C63FF', '#FFB86C', '#00B8D4'];
+        db.siswa.forEach((s, index) => {
+            let borderColor = colors[index % 3];
+            let namaReal = s.nama_siswa || s.nama, idReal = s.id_siswa || s.id, absenReal = s.absen || '-', kelasReal = s.kelas || '-';
+            let nLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] + '%' : '-';
+            let nNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] + '%' : '-';
+            let nMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] + '%' : '-';
+
+            container.innerHTML += `
+                <div class="list-item" style="border-left-color: ${borderColor}; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 15px 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="display:flex; align-items:center; gap:12px; flex: 1; min-width: 0;">
+                            <span style="font-size:1.8rem; flex-shrink: 0; background: #f0f4f8; padding: 5px; border-radius: 50%;">👤</span>
+                            <div style="flex: 1; min-width: 0;"><div class="truncate-text" style="font-size:1.15rem; font-weight: 800; color: #2D3748;">${namaReal}</div><div class="truncate-text" style="font-size:0.85rem; color:#718096; margin-top: 2px;">Absen: <b>${absenReal}</b> | Kelas: <b>${kelasReal}</b></div></div>
+                        </div>
+                        <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                            <button class="btn" style="background: #e2e8f0; color: #475569; width: auto; padding: 8px 12px; margin:0; border-radius:10px; font-size: 1rem;" onclick="bukaModalSiswa(${idReal})" title="Edit">✏️</button>
+                            <button class="btn btn-danger" style="width: auto; padding: 8px 12px; margin:0; border-radius:10px; font-size: 1rem;" onclick="hapusSiswa(${idReal})" title="Hapus">🗑️</button>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-start; margin-top: 5px;"><span class="badge-nilai">L: ${nLoko}</span><span class="badge-nilai">NL: ${nNon}</span><span class="badge-nilai">M: ${nMan}</span></div>
+                </div>`;
+        });
+    }
+
+    function bukaModalSiswa(idEdit = null) {
+        let title = document.getElementById('modalSiswaTitle'), formId = document.getElementById('formSiswaId'), formNama = document.getElementById('formSiswaNama'), formAbsen = document.getElementById('formSiswaAbsen'), formKelas = document.getElementById('formSiswaKelas'), formSekolah = document.getElementById('formSiswaSekolah');
+        if(idEdit) {
+            title.innerText = "Edit Data Siswa"; let s = db.siswa.find(x => (x.id_siswa || x.id) === idEdit);
+            formId.value = idEdit; formNama.value = s.nama_siswa || s.nama; formAbsen.value = s.absen || ''; formKelas.value = s.kelas || ''; formSekolah.value = s.asal_sekolah || '';
+        } else { title.innerText = "Tambah Siswa Baru"; formId.value = ''; formNama.value = ''; formAbsen.value = ''; formKelas.value = ''; formSekolah.value = ''; }
+        document.getElementById('modalSiswa').classList.add('active');
+    }
+
+    function tutupModalSiswa() { document.getElementById('modalSiswa').classList.remove('active'); }
+
+    function simpanSiswa() {
+        let idEdit = document.getElementById('formSiswaId').value, nama = document.getElementById('formSiswaNama').value.trim(), absen = document.getElementById('formSiswaAbsen').value.trim(), kelas = document.getElementById('formSiswaKelas').value.trim(), sekolah = document.getElementById('formSiswaSekolah').value.trim();
+        if (!nama) return showCustomAlert('Peringatan', 'Nama lengkap siswa tidak boleh kosong!');
+        if(idEdit) {
+            let sIndex = db.siswa.findIndex(x => (x.id_siswa || x.id) == idEdit);
+            if(sIndex !== -1) { db.siswa[sIndex].nama_siswa = nama; db.siswa[sIndex].nama = nama; db.siswa[sIndex].absen = absen; db.siswa[sIndex].kelas = kelas; db.siswa[sIndex].asal_sekolah = sekolah; }
+        } else {
+            db.siswa.push({ id_siswa: Date.now(), nama_siswa: nama, absen: absen, kelas: kelas, asal_sekolah: sekolah, nilai: { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 } });
+        }
+        localStorage.setItem('fms_siswa', JSON.stringify(db.siswa)); tutupModalSiswa(); renderSiswa();
+    }
+    
+    function hapusSiswa(id) {
+        showCustomConfirm('Hapus Siswa', 'Hapus data siswa ini beserta nilai asesmennya?', () => {
+            db.siswa = db.siswa.filter(s => (s.id_siswa || s.id) !== id);
+            localStorage.setItem('fms_siswa', JSON.stringify(db.siswa)); 
+            renderSiswa();
+        });
+    }
+
+    // --- ASESMEN & ABSENSI FLOW ---
+    function pilihKategori(jenis_materi) {
+        if (db.siswa.length === 0) { 
+            return showCustomAlert('Data Kosong', 'Data siswa kosong! Isi daftar siswa terlebih dahulu.', () => {
+                navigate('page-siswa', 'Daftar Siswa'); renderSiswa(); 
+            });
+        }
+        state.tempAsesmen.jenis_materi = jenis_materi; let container = document.getElementById('listSubMateri'); container.innerHTML = '';
+        dbMateriFMS.filter(m => m.jenis_materi === jenis_materi).forEach(m => { container.innerHTML += `<div class="menu-item menu-item-sub" style="padding:25px 10px;" onclick="pilihSubMateri('${m.id_materi}')">
+        <img src="./icon/${m.icon}" alt="" />
+        <span style="">${m.nama_materi}</span></div>`; });
+        navigate('page-pilih-sub', 'Unit: ' + jenis_materi);
+    }
+
+    function pilihSubMateri(id_materi) {
+        let materiTerpilih = dbMateriFMS.find(m => m.id_materi === id_materi);
+        state.tempAsesmen.id_materi = materiTerpilih.id_materi; 
+        state.tempAsesmen.nama_materi = materiTerpilih.nama_materi;
+        
+        state.dinilaiSesiIni = []; 
+        state.absensiSesiIni = {}; 
+        
+        // Inisialisasi absensi default 'Masuk'
+        db.siswa.forEach(s => {
+            state.absensiSesiIni[s.id_siswa || s.id] = 'Masuk';
+        });
+
+        renderAbsensi();
+        navigate('page-absensi', 'Absensi Kehadiran');
+    }
+
+    function renderAbsensi() {
+        document.getElementById('lblMateriAbsensi').innerText = state.tempAsesmen.nama_materi;
+        let container = document.getElementById('listAbsensiContainer');
+        container.innerHTML = '';
+        
+        db.siswa.forEach(s => {
+            let idReal = s.id_siswa || s.id;
+            let status = state.absensiSesiIni[idReal];
+            
+            let btnMasuk = status === 'Masuk' ? 'background: #6C63FF; color: white; box-shadow: 0 4px 6px rgba(108, 99, 255, 0.3);' : 'background: #e2e8f0; color: #475569;';
+            let btnIzin = status === 'Izin' ? 'background: #FFB86C; color: white; box-shadow: 0 4px 6px rgba(255, 184, 108, 0.3);' : 'background: #e2e8f0; color: #475569;';
+            let btnSakit = status === 'Sakit' ? 'background: #00B8D4; color: white; box-shadow: 0 4px 6px rgba(0, 184, 212, 0.3);' : 'background: #e2e8f0; color: #475569;';
+            let btnAlfa = status === 'Alfa' ? 'background: #FF6B6B; color: white; box-shadow: 0 4px 6px rgba(255, 107, 107, 0.3);' : 'background: #e2e8f0; color: #475569;';
+
+            container.innerHTML += `
+                <div class="card" style="padding: 15px; margin-bottom: 15px; border-left: 5px solid #6C63FF;">
+                    <div class="truncate-text" style="font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; color: #2D3748;">
+                        👤 ${s.nama_siswa || s.nama}
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px;">
+                        <button class="btn" style="margin-bottom: 0; padding: 8px 0; font-size: 0.85rem; border-radius: 8px; ${btnMasuk}" onclick="setAbsen(${idReal}, 'Masuk')">Masuk</button>
+                        <button class="btn" style="margin-bottom: 0; padding: 8px 0; font-size: 0.85rem; border-radius: 8px; ${btnIzin}" onclick="setAbsen(${idReal}, 'Izin')">Izin</button>
+                        <button class="btn" style="margin-bottom: 0; padding: 8px 0; font-size: 0.85rem; border-radius: 8px; ${btnSakit}" onclick="setAbsen(${idReal}, 'Sakit')">Sakit</button>
+                        <button class="btn" style="margin-bottom: 0; padding: 8px 0; font-size: 0.85rem; border-radius: 8px; ${btnAlfa}" onclick="setAbsen(${idReal}, 'Alfa')">Alfa</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function setAbsen(idSiswa, status) {
+        state.absensiSesiIni[idSiswa] = status;
+        renderAbsensi(); 
+    }
+
+    function simpanAbsensiDanLanjut() {
+        let materiTerpilih = dbMateriFMS.find(m => m.id_materi === state.tempAsesmen.id_materi);
+        let maxPerPercobaan = materiTerpilih.kriteria.length;
+        let nilaiMaksimal = maxPerPercobaan * 2;
+
+        db.siswa.forEach(s => {
+            let idReal = s.id_siswa || s.id;
+            let status = state.absensiSesiIni[idReal];
+            
+            // Proses nilai otomatis untuk yang tidak masuk
+            if (status !== 'Masuk') {
+                let data = { 
+                    id: Date.now() + Math.random(), 
+                    tanggal: new Date().toLocaleString('id-ID'), 
+                    id_materi: state.tempAsesmen.id_materi, 
+                    kategori: state.tempAsesmen.jenis_materi, 
+                    sub: `${state.tempAsesmen.nama_materi} (${status})`, // Menyematkan status absensi
+                    idSiswa: idReal, 
+                    namaSiswa: s.nama_siswa || s.nama, 
+                    nilai_p1: 0,     
+                    nilai_p2: 0,     
+                    nilai: 0,     
+                    maxNilai: nilaiMaksimal
+                };
+                db.asesmen.push(data);
+                state.dinilaiSesiIni.push(idReal);
+                updateNilaiSiswa(idReal);
+            }
+        });
+        
+        localStorage.setItem('fms_asesmen', JSON.stringify(db.asesmen));
+        
+        renderSiswaAsesmen();
+        navigate('page-pilih-siswa-asesmen', 'Pilih Siswa');
+    }
+
+    function renderSiswaAsesmen() {
+        document.getElementById('lblMateriAktif').innerText = state.tempAsesmen.nama_materi; 
+        let container = document.getElementById('listSiswaAsesmenContainer'); 
+        container.innerHTML = '';
+        
+        let adaSiswaMasuk = false;
+
+        db.siswa.forEach(s => {
+            let idReal = s.id_siswa || s.id;
+            let status = state.absensiSesiIni[idReal];
+            
+            if (status === 'Masuk') {
+                adaSiswaMasuk = true;
+                let isAssessed = state.dinilaiSesiIni.includes(idReal);
+                let statusBadge = isAssessed ? '<span style="background: #00B8D4; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; margin-left: 8px; font-weight: bold;">✅ Selesai</span>' : '';
+                let actionText = isAssessed ? '<span style="color: #718096; font-size: 0.95rem;">Ulangi ➔</span>' : '<span style="color: #6C63FF; font-weight: 800;">NILAI ➔</span>';
+                
+                container.innerHTML += `<div class="list-item" onclick="bukaFormAsesmen(${idReal}, '${s.nama_siswa || s.nama}')" style="cursor:pointer; border-left-color: ${isAssessed ? '#00B8D4' : '#FFB86C'}; ${isAssessed ? 'opacity:0.85;' : ''}">
+                    <div style="flex: 1; min-width: 0; display: flex; align-items: center;"><span class="truncate-text" style="max-width: 70%; font-size:1.1rem;">${s.nama_siswa || s.nama}</span>${statusBadge}</div>${actionText}</div>`;
+            }
+        });
+
+        if (!adaSiswaMasuk) {
+            container.innerHTML = '<div class="card" style="text-align:center; color:#888; font-weight: bold;">Tidak ada siswa yang berstatus "Masuk" pada sesi ini.</div>';
+        }
+        container.innerHTML += `
+          <div class="tutup-asesmen">
+            <button class="btn btn-primary" onclick="return showCustomConfirm('Tutup Asesmen', 'Pastikan semua siswa sudah melakukan penilaian. Anda yakin ingin menutup?', ()=> { showPage('page-dashboard','DIASFUNTORS')});">
+              Tutup Asesmen
+            </button>
+          </div>
+        `;
+    }
+
+    function bukaFormAsesmen(idSiswa, namaSiswa) {
+        state.tempAsesmen.idSiswa = idSiswa; state.tempAsesmen.namaSiswa = namaSiswa;
+        let materiTerpilih = dbMateriFMS.find(m => m.id_materi === state.tempAsesmen.id_materi);
+        
+        document.getElementById('namaSiswaDinilai').innerText = namaSiswa; 
+        document.getElementById('materiDinilai').innerText = materiTerpilih.nama_materi; 
+        
+        let instruksiHtml = `
+            <div style="margin-top: 15px; text-align: center;">
+                <video controls style="width: 100%; border-radius: 12px; border: 2px solid #B2EBF2; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <source src="assets/${materiTerpilih.video}" type="video/mp4">
+                    Browser Anda tidak mendukung tag video.
+                </video>
+            </div>
+            ${materiTerpilih.instruksi}
+        `;
+        document.getElementById('instruksiGuruText').innerHTML = instruksiHtml;
+        
+        let container = document.getElementById('kriteriaContainer'); 
+        container.innerHTML = '';
+        
+        let htmlP1 = `
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 20px; border: 1px solid #E2E1FF;">
+            <div style="background: #E2E1FF; color: #5A52D5; padding: 14px; text-align: center; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px;">
+                ▶ PERCOBAAN 1
+            </div>
+            <div style="padding: 5px 15px 15px 15px;">`;
+            
+        materiTerpilih.kriteria.forEach((k, i) => {
+            htmlP1 += `
+                <div style="display: grid; grid-template-columns: 3fr 1fr; align-items: center; padding: 14px 0; border-bottom: 1px dashed #e0e0e0;">
+                    <div style="font-size: 0.95rem; line-height: 1.5; color: #2D3748; padding-right: 15px;">
+                        <span style="color: #6C63FF; font-weight: 800; margin-right: 5px;">${i+1}.</span> ${k}
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; border-left: 2px solid #f4f7f9;">
+                        <input type="checkbox" class="cek-p1" value="1" style="width: 28px; height: 28px; accent-color: #6C63FF; margin: 0; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    </div>
+                </div>`;
+        });
+        htmlP1 += `</div></div>`;
+
+        let htmlP2 = `
+        <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 25px; border: 1px solid #FFE0B2;">
+            <div style="background: #FFE0B2; color: #D84315; padding: 14px; text-align: center; font-weight: 900; font-size: 1.1rem; letter-spacing: 1px;">
+                ▶ PERCOBAAN 2
+            </div>
+            <div style="padding: 5px 15px 15px 15px;">`;
+            
+        materiTerpilih.kriteria.forEach((k, i) => {
+            htmlP2 += `
+                <div style="display: grid; grid-template-columns: 3fr 1fr; align-items: center; padding: 14px 0; border-bottom: 1px dashed #e0e0e0;">
+                    <div style="font-size: 0.95rem; line-height: 1.5; color: #2D3748; padding-right: 15px;">
+                        <span style="color: #D84315; font-weight: 800; margin-right: 5px;">${i+1}.</span> ${k}
+                    </div>
+                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; border-left: 2px solid #f4f7f9;">
+                        <input type="checkbox" class="cek-p2" value="1" style="width: 28px; height: 28px; accent-color: #D84315; margin: 0; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    </div>
+                </div>`;
+        });
+        htmlP2 += `</div></div>`;
+
+        container.innerHTML = htmlP1 + htmlP2;
+
+        let btnSimpan = document.querySelector('#page-form-asesmen .btn-primary');
+        btnSimpan.style.display = 'block';
+        btnSimpan.id = "btnSimpanPenilaian";
+        
+        let hasilContainer = document.getElementById('hasilPenilaianContainer');
+        if(!hasilContainer) {
+            hasilContainer = document.createElement('div');
+            hasilContainer.id = 'hasilPenilaianContainer';
+            container.parentNode.insertBefore(hasilContainer, btnSimpan.nextSibling);
+        }
+        hasilContainer.style.display = 'none';
+        hasilContainer.innerHTML = '';
+        
+        navigate('page-form-asesmen', 'Penilaian');
+    }
+
+    function simpanAsesmen() {
+        let scoreP1 = 0;
+        let scoreP2 = 0;
+
+        document.querySelectorAll('#kriteriaContainer .cek-p1').forEach(c => { if(c.checked) scoreP1++; });
+        document.querySelectorAll('#kriteriaContainer .cek-p2').forEach(c => { if(c.checked) scoreP2++; });
+
+        let materiTerpilih = dbMateriFMS.find(m => m.id_materi === state.tempAsesmen.id_materi);
+
+        let nilaiAkhir = scoreP1 + scoreP2; 
+        let maxPerPercobaan = materiTerpilih.kriteria.length;
+        let nilaiMaksimal = maxPerPercobaan * 2;
+        let persentase = Math.round((nilaiAkhir / nilaiMaksimal) * 100);
+
+        let kategori = ""; let warnaKategori = ""; let iconKategori = "";
+        
+        if (persentase >= 85) { kategori = "Sangat Baik"; warnaKategori = "#2E7D32"; iconKategori = "⭐"; }
+        else if (persentase >= 70) { kategori = "Baik"; warnaKategori = "#1976D2"; iconKategori = "👍"; }
+        else if (persentase >= 55) { kategori = "Cukup"; warnaKategori = "#F57C00"; iconKategori = "⚖️"; }
+        else { kategori = "Perlu Bimbingan"; warnaKategori = "#D32F2F"; iconKategori = "⚠️"; }
+
+        let data = { 
+            id: Date.now(), 
+            tanggal: new Date().toLocaleString('id-ID'), 
+            id_materi: state.tempAsesmen.id_materi, 
+            kategori: state.tempAsesmen.jenis_materi, 
+            sub: state.tempAsesmen.nama_materi, 
+            idSiswa: state.tempAsesmen.idSiswa, 
+            namaSiswa: state.tempAsesmen.namaSiswa, 
+            nilai_p1: scoreP1,     
+            nilai_p2: scoreP2,     
+            nilai: nilaiAkhir,     
+            maxNilai: nilaiMaksimal
+        };
+        
+        db.asesmen.push(data); 
+        localStorage.setItem('fms_asesmen', JSON.stringify(db.asesmen));
+        updateNilaiSiswa(state.tempAsesmen.idSiswa); 
+        state.dinilaiSesiIni.push(state.tempAsesmen.idSiswa);
+        
+        document.getElementById('btnSimpanPenilaian').style.display = 'none';
+        document.querySelectorAll('.cek-p1, .cek-p2').forEach(c => c.disabled = true);
+        
+        let hasilContainer = document.getElementById('hasilPenilaianContainer');
+        hasilContainer.style.display = 'block';
+        hasilContainer.innerHTML = `
+            <div style="background: #ffffff; border: 2px solid ${warnaKategori}; border-radius: 16px; padding: 25px 20px; text-align: center; margin-top: 15px; animation: fadeIn 0.4s; box-shadow: 0 8px 20px rgba(0,0,0,0.08);">
+                <p style="color: #64748b; margin-bottom: 5px; font-weight: 700; font-size: 0.95rem;">✅ Asesmen Tersimpan!</p>
+                <h2 style="font-size: 4rem; font-weight: 900; color: ${warnaKategori}; margin: 5px 0; line-height: 1;">${persentase}<span style="font-size: 2rem;">%</span></h2>
+                <h4 style="font-size: 1.4rem; font-weight: 800; color: ${warnaKategori}; margin-bottom: 25px;">${iconKategori} ${kategori}</h4>
+                <div style="background: #f8fafc; border-radius: 12px; padding: 15px; margin: 15px 0; display:flex; justify-content:space-around; align-items: center; border: 1px solid #e2e8f0;">
+                    <div style="text-align: center;"><span style="font-size:0.85rem; color:#64748b; display:block; font-weight: 700;">Percobaan 1</span><b style="color:#6C63FF; font-size:1.4rem;">${scoreP1} <span style="font-size:0.9rem; color:#94a3b8;">/ ${maxPerPercobaan}</span></b></div>
+                    <div style="width: 1px; height: 40px; background: #cbd5e1;"></div>
+                    <div style="text-align: center;"><span style="font-size:0.85rem; color:#64748b; display:block; font-weight: 700;">Percobaan 2</span><b style="color:#D84315; font-size:1.4rem;">${scoreP2} <span style="font-size:0.9rem; color:#94a3b8;">/ ${maxPerPercobaan}</span></b></div>
+                </div>
+                <div style="margin-bottom: 25px;"><span style="font-size:0.95rem; color:#64748b; font-weight: 700;">Total Skor: </span><b style="font-size:1.2rem; color: #334155; background: #e2e8f0; padding: 4px 12px; border-radius: 8px;">${nilaiAkhir} / ${nilaiMaksimal}</b></div>
+                <button class="btn btn-tertiary" onclick="kembaliKeDaftarSiswaDinilai()" style="margin-bottom:0; width: 100%; padding: 15px; border-radius: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">➔ Kembali</button>
+            </div>
+        `;
+    }
+
+    function kembaliKeDaftarSiswaDinilai() {
+        renderSiswaAsesmen(); 
+        let prev = state.history.pop(); 
+        showPage(prev.id, prev.title);
+    }
+
+    // --- HASIL, DETAIL & LAPORAN ---
+    function renderHasil() {
+        let container = document.getElementById('listHasilContainer'); container.innerHTML = '';
+        if(db.siswa.length === 0) { container.innerHTML = '<div class="card" style="text-align:center; color:#888;">Data siswa masih kosong.</div>'; return; }
+        
+        const colors = ['#6C63FF', '#FFB86C', '#00B8D4'];
+        db.siswa.forEach((s, index) => {
+            let borderColor = colors[index % 3];
+            let namaReal = s.nama_siswa || s.nama, idReal = s.id_siswa || s.id, absenReal = s.absen || '-', kelasReal = s.kelas || '-';
+            let nLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] + '%' : '-';
+            let nNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] + '%' : '-';
+            let nMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] + '%' : '-';
+
+            container.innerHTML += `
+                <div class="list-item" onclick="bukaDetailSiswa(${idReal})" style="cursor:pointer; border-left-color: ${borderColor}; display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 15px 12px; transition: 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div style="display:flex; align-items:center; gap:12px; flex: 1; min-width: 0;">
+                            <span style="font-size:1.8rem; flex-shrink: 0; background: #f0f4f8; padding: 5px; border-radius: 50%;">👤</span>
+                            <div style="flex: 1; min-width: 0;"><div class="truncate-text" style="font-size:1.15rem; font-weight: 800; color: #2D3748;">${namaReal}</div><div class="truncate-text" style="font-size:0.85rem; color:#718096; margin-top: 2px;">Absen: <b>${absenReal}</b> | Kelas: <b>${kelasReal}</b></div></div>
+                        </div>
+                        <span style="color: #6C63FF; font-size: 1.5rem; margin-left: 5px; opacity: 0.7;">➔</span>
+                    </div>
+                    <div style="display: flex; justify-content: flex-start; margin-top: 5px;"><span class="badge-nilai">L: ${nLoko}</span><span class="badge-nilai">NL: ${nNon}</span><span class="badge-nilai">M: ${nMan}</span></div>
+                </div>`;
+        });
+    }
+
+    let detailDataTable;
+    function bukaDetailSiswa(idSiswa) {
+        let s = db.siswa.find(x => (x.id_siswa || x.id) === idSiswa); if(!s) return;
+        let namaReal = s.nama_siswa || s.nama, absenReal = s.absen || '-', kelasReal = s.kelas || '-';
+        
+        let numLoko = s.nilai && s.nilai['Lokomotor'] !== undefined ? s.nilai['Lokomotor'] : 0;
+        let numNon = s.nilai && s.nilai['Non Lokomotor'] !== undefined ? s.nilai['Non Lokomotor'] : 0;
+        let numMan = s.nilai && s.nilai['Manipulatif'] !== undefined ? s.nilai['Manipulatif'] : 0;
+
+        let pLoko = getKategoriPredikat(numLoko); let pNon = getKategoriPredikat(numNon); let pMan = getKategoriPredikat(numMan);
+
+        document.getElementById('detailSiswaProfil').innerHTML = `
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div style="font-size: 3.5rem; background: #F4F7F9; width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; box-shadow: 0 6px 15px rgba(108, 99, 255, 0.2);">👤</div>
+                <h3 style="color: #2D3748; font-size: 1.5rem; font-weight: 900; margin-bottom: 5px;">${namaReal}</h3>
+                <p style="color: #718096; font-size: 1rem; font-weight: 600;">No. Absen: <b style="color:#6C63FF;">${absenReal}</b> | Kelas: <b style="color:#6C63FF;">${kelasReal}</b></p>
+            </div>
+            
+            <div style="display: flex; gap: 8px; justify-content: space-between; background: #fff; padding: 15px 5px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #E2E1FF; width: 100%; box-sizing: border-box;">
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;"><div class="truncate-text" title="Lokomotor" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Lokomotor</div><div style="font-size: 1.35rem; font-weight: 900; color: ${pLoko.warna}; line-height: 1;">${numLoko}%</div><div class="truncate-text" title="${pLoko.teks}" style="font-size: 0.65rem; color: ${pLoko.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pLoko.icon} ${pLoko.teks}</div></div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Lokomotor')">Rincian</button>
+                </div>
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); border-right: 1px dashed #e2e8f0; padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;"><div class="truncate-text" title="Non Lokomotor" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Non-Loko</div><div style="font-size: 1.35rem; font-weight: 900; color: ${pNon.warna}; line-height: 1;">${numNon}%</div><div class="truncate-text" title="${pNon.teks}" style="font-size: 0.65rem; color: ${pNon.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pNon.icon} ${pNon.teks}</div></div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Non Lokomotor')">Rincian</button>
+                </div>
+                <div style="text-align: center; flex: 1; min-width: 0; max-width: calc((100% - 16px) / 3); padding: 0 2px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="width: 100%;"><div class="truncate-text" title="Manipulatif" style="font-size: 0.75rem; color: #64748b; font-weight: 800; margin-bottom:5px; width: 100%; cursor: help;">Manipulatif</div><div style="font-size: 1.35rem; font-weight: 900; color: ${pMan.warna}; line-height: 1;">${numMan}%</div><div class="truncate-text" title="${pMan.teks}" style="font-size: 0.65rem; color: ${pMan.warna}; font-weight: 700; margin: 8px 0 12px; width: 100%; cursor: help;">${pMan.icon} ${pMan.teks}</div></div>
+                    <button class="btn" style="background: #f1f5f9; color: #475569; padding: 8px 2px; font-size: 0.7rem; border-radius: 8px; box-shadow: none; margin: 0; width: 100%; letter-spacing: -0.5px;" onclick="bukaRincianKategori(${idSiswa}, 'Manipulatif')">Rincian</button>
+                </div>
+            </div>
+        `;
+
+        if ($.fn.DataTable.isDataTable('#tabelDetailSiswa')) $('#tabelDetailSiswa').DataTable().destroy();
+        
+        let tbody = document.querySelector('#tabelDetailSiswa tbody'); tbody.innerHTML = '';
+        let riwayatSiswa = db.asesmen.filter(a => a.idSiswa === idSiswa);
+        riwayatSiswa.forEach((a, idx) => {
+            tbody.innerHTML += `<tr><td>${idx + 1}</td><td style="color:#666; font-weight:bold;">${a.tanggal.split(',')[0]}</td><td><strong style="color:#2D3748; font-size:0.95rem;">${a.sub}</strong><br><span style="font-size:0.75rem; color:#718096;">${a.kategori}</span></td><td style="font-weight:900; color:#6C63FF; text-align:center; font-size:1.1rem;">${a.nilai}/${a.maxNilai}</td></tr>`;
+        });
+
+        detailDataTable = $('#tabelDetailSiswa').DataTable({
+            order: [[1, 'desc']], dom: '<"top"Bf>rt<"bottom"p><"clear">',
+            buttons: [{ extend: 'excelHtml5', text: '📥 Unduh Excel', title: 'Riwayat_Evaluasi_DIASFUNTORS_' + namaReal }],
+            language: { search: "Saring Data:", emptyTable: "Belum ada riwayat asesmen.", paginate: { next: "▶", previous: "◀" } },
+            pageLength: 5, lengthChange: false, info: false
+        });
+        navigate('page-detail-siswa', 'Rapor Siswa');
+    }
+
+    let myDataTable;
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        if(settings.nTable.id !== 'tabelDataLaporan') return true; 
+        let fDate = $('#filterTanggalDT').val(); if (!fDate) return true; 
+        let parts = data[0].split(',')[0].trim().split(' ')[0].trim().split('/');
+        if(parts.length === 3) return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}` === fDate;
+        return true;
+    });
+
+    function renderLaporan() {
+        if ($.fn.DataTable.isDataTable('#tabelDataLaporan')) $('#tabelDataLaporan').DataTable().destroy();
+        let tbody = document.querySelector('#tabelDataLaporan tbody'); tbody.innerHTML = '';
+        db.asesmen.forEach(a => { tbody.innerHTML += `<tr><td style="color:#666; font-weight:bold;">${a.tanggal.split(',')[0]}</td><td><strong style="color:#2D3748;">${a.namaSiswa}</strong></td><td>${a.kategori} - ${a.sub}</td><td style="font-weight:900; color:#6C63FF;">${a.nilai}/${a.maxNilai}</td></tr>`; });
+
+        myDataTable = $('#tabelDataLaporan').DataTable({
+            order: [[0, 'desc']], dom: '<"top"Bf>rt<"bottom"p><"clear">', 
+            buttons: [{ extend: 'excelHtml5', text: '📥 Unduh Laporan Excel', title: 'Laporan_Asesmen_DIASFUNTORS' }],
+            language: { search: "Cari Data Siswa:", emptyTable: "Belum ada data riwayat tersimpan.", paginate: { next: "▶", previous: "◀" } },
+            pageLength: 10, lengthChange: false, info: false
+        });
+    }
+
+    $('#filterTanggalDT').on('change', function() { if (myDataTable) myDataTable.draw(); });
+    function resetFilterDT() { $('#filterTanggalDT').val(''); if (myDataTable) myDataTable.draw(); }
+
+    function loadPengaturan() { document.getElementById('setUname').value = db.pengaturan.uname; document.getElementById('setPass').value = db.pengaturan.pass; document.getElementById('setNamaGuru').value = db.pengaturan.nama || ''; document.getElementById('setSekolah').value = db.pengaturan.sekolah || ''; }
+    
+    function simpanPengaturan() { 
+        db.pengaturan = { uname: document.getElementById('setUname').value, pass: document.getElementById('setPass').value, nama: document.getElementById('setNamaGuru').value, sekolah: document.getElementById('setSekolah').value }; 
+        localStorage.setItem('fms_pengaturan', JSON.stringify(db.pengaturan)); 
+        showCustomAlert('Berhasil', 'Pengaturan akun berhasil disimpan!', () => { handleBack(); }); 
+    }
+    
+    function hapusSemuaRiwayat() {
+        showCustomConfirm('PERINGATAN KERAS!', 'Anda yakin ingin menghapus SELURUH Riwayat Asesmen secara permanen? Tindakan ini tidak dapat dibatalkan!', () => {
+            db.asesmen = [];
+            localStorage.setItem('fms_asesmen', JSON.stringify(db.asesmen));
+            db.siswa.forEach(s => { s.nilai = { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 }; });
+            localStorage.setItem('fms_siswa', JSON.stringify(db.siswa));
+            showCustomAlert('Berhasil', 'Seluruh riwayat asesmen telah berhasil dihapus.', () => { handleBack(); });
+        });
+    }
+
+    function getKategoriPredikat(persentase) {
+        if (persentase >= 85) return { teks: "Sangat Baik", warna: "#2E7D32", icon: "⭐" };
+        if (persentase >= 70) return { teks: "Baik", warna: "#1976D2", icon: "👍" };
+        if (persentase >= 55) return { teks: "Cukup", warna: "#F57C00", icon: "⚖️" };
+        return { teks: "Perlu Bimbingan", warna: "#D32F2F", icon: "⚠️" };
+    }
+
+    function bukaRincianKategori(idSiswa, kategori) {
+        document.getElementById('judulModalRincian').innerText = "Rincian " + kategori;
+        let riwayat = db.asesmen.filter(a => a.idSiswa === idSiswa && a.kategori === kategori);
+        
+        if(riwayat.length === 0) {
+            document.getElementById('kontenModalRincian').innerHTML = `<p style="text-align:center; color:#888;">Belum ada data asesmen untuk ${kategori}.</p>`;
+            document.getElementById('modalRincian').classList.add('active');
+            return;
+        }
+
+        let tesTerbaru = {}; 
+        riwayat.forEach(a => { tesTerbaru[a.sub] = a; });
+        
+        let totalNilai = 0; let totalMax = 0; let barisTabel = ''; let no = 1;
+
+        Object.values(tesTerbaru).forEach(a => {
+            totalNilai += a.nilai; totalMax += a.maxNilai;
+            barisTabel += `
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">${no++}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; color: #2D3748; font-weight: 700;">${a.sub}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #f1f5f9; font-weight: 900; color: #6C63FF; text-align: center;">${a.nilai}</td>
+                </tr>`;
+        });
+
+        let htmlRincian = `
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95rem;">
+                <thead>
+                    <tr style="background: #E2E1FF; color: #5A52D5;">
+                        <th style="padding: 12px 10px; text-align: left; border-radius: 10px 0 0 0;">No</th>
+                        <th style="padding: 12px 10px; text-align: left;">Gerakan</th>
+                        <th style="padding: 12px 10px; text-align: center; border-radius: 0 10px 0 0;">Skor</th>
+                    </tr>
+                </thead>
+                <tbody>${barisTabel}</tbody>
+            </table>
+            
+            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.5rem;">📊</div>
+                <div><div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">TOTAL SKOR ${kategori.toUpperCase()}</div><div style="font-size: 1.1rem; font-weight: 900; color: #2D3748;">Total = ${totalNilai}</div></div>
+            </div>
+
+            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 1.5rem;">✅</div>
+                <div><div style="font-size: 0.8rem; color: #64748b; font-weight: 700;">SKOR MAKSIMAL</div><div style="font-size: 1.1rem; font-weight: 900; color: #2D3748;">Total = ${totalMax}</div></div>
+            </div>
+        `;
+
+        document.getElementById('kontenModalRincian').innerHTML = htmlRincian;
+        document.getElementById('modalRincian').classList.add('active');
+    }
+
+showPage('page-home', 'DIASFUNTORS');
+
+</script>
+</body>
+</html>
