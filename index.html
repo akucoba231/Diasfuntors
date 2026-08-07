@@ -23,7 +23,7 @@
 
 <div class="phone-wrapper">
     <div class="header">
-        <button class="back-btn" id="btnBack" onclick="handleBack()">&#10094;</button>
+        <button class="back-btn" id="btnBack" onclick="handleBack()">&#10094; Kembali</button>
         <div class="logo-container">
             <img id="headerLogoImg" class="logo" src="assets/logo.png" alt="Logo Aplikasi" style="height: 40px; display: none; object-fit: contain;" onerror="this.onerror=null; this.src='https://via.placeholder.com/200x50/ffffff/6c63ff?text=LOGO.PNG';">
             
@@ -147,7 +147,7 @@
                 </div>
             </div>
 
-            <button class="btn btn-secondary" style="font-size: 0.95rem; margin-bottom: 15px;" onclick="unduhDummyExcel()">⬇️ Unduh Format File (Contoh)</button>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.95rem; margin-bottom: 15px;" onclick="unduhDummyExcel()">⬇️ Unduh Format File (Contoh)</button>
             
             <label style="font-size: 0.85rem; font-weight: bold; color: #666;">Pilih File Excel Anda:</label>
             <input type="file" id="fileExcelImport" accept=".xlsx, .xls">
@@ -209,13 +209,20 @@
         <h3 class="title-section" style="margin-top: 50px;">Menu Utama Dasbor</h3>
         <div class="grid-menu">
             <div class="menu-item" onclick="navigate('page-pilih-kategori', 'Asesmen')"><div class="icon">📝</div><span>Asesmen</span></div>
-            <div class="menu-item" onclick="navigate('page-hasil', 'Buku Induk Evaluasi'); renderHasil()"><div class="icon">📊</div><span>Hasil Evaluasi</span></div>
-            <div class="menu-item" onclick="navigate('page-laporan', 'Laporan'); renderLaporan()"><div class="icon">📑</div><span>Laporan</span></div>
-            <div class="menu-item" onclick="navigate('page-siswa', 'Daftar Siswa'); renderSiswa()"><div class="icon">👥</div><span>Daftar Siswa</span></div>
+            <div class="menu-item" onclick="bukaFilterKelas('page-hasil', 'Buku Induk Evaluasi')"><div class="icon">📊</div><span>Hasil Evaluasi</span></div>
+            <div class="menu-item" onclick="bukaFilterKelas('page-laporan', 'Laporan')"><div class="icon">📑</div><span>Laporan</span></div>
+            <div class="menu-item" onclick="bukaFilterKelas('page-siswa', 'Daftar Siswa')"><div class="icon">👥</div><span>Daftar Siswa</span></div>
             <div class="menu-item" onclick="navigate('page-panduan', 'Panduan')"><div class="icon">📖</div><span>Panduan</span></div>
             <div class="menu-item" onclick="navigate('page-pengaturan', 'Pengaturan'); loadPengaturan()"><div class="icon">⚙️</div><span>Pengaturan</span></div>
         </div>
         <button class="btn btn-danger" style="margin-top: 25px; opacity: 0.9;" onclick="logout()">Keluar Aplikasi</button>
+    </div>
+
+    <!-- HALAMAN PILIH KELAS FILTER -->
+    <div id="page-pilih-kelas-filter" class="page">
+        <p style="text-align: center; margin-bottom: 25px; color: #fff; font-weight: 600; text-shadow:2px 2px 5px #000;">Pilih Kelas:</p>
+        <div class="grid-menu" id="listKelasFilterContainer" style="grid-template-columns: 1fr;">
+        </div>
     </div>
 
     <!-- HALAMAN DAFTAR SISWA -->
@@ -223,13 +230,6 @@
         <div style="display: flex; gap: 10px; margin-bottom: 20px;">
             <button class="btn btn-primary" style="margin-bottom:0; box-shadow: 0 4px 10px rgba(108, 99, 255, 0.3); font-size: 0.9rem;" onclick="bukaModalSiswa()">➕ Tambah Siswa</button>
             <button class="btn btn-success" style="margin-bottom:0; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3); font-size: 0.9rem;" onclick="bukaModalImport()">📥 Import XLSX</button>
-        </div>
-        
-        <div style="margin-bottom: 15px;">
-            <label style="color: #fff; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 0.9rem;">Filter Kelas:</label>
-            <select id="filterKelasTabelSiswa" style="padding: 10px; margin-bottom: 0;">
-                <option value="">Semua Kelas</option>
-            </select>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
@@ -271,18 +271,7 @@
             Materi: <strong id="lblMateriAbsensi" style="font-size: 1.1rem; display: block; margin-top: 5px;"></strong>
         </div>
 
-        <div style="margin-bottom: 20px;">
-            <label style="color: #2D3748; font-weight: 800; font-size: 1rem; margin-bottom: 5px; display:block;">Pilih Kelas untuk Asesmen:</label>
-            <select id="filterKelasAbsensi" style="margin-bottom: 0;" onchange="pilihKelasAbsensi()">
-                <option value="">-- Pilih Kelas --</option>
-            </select>
-        </div>
-
-        <div id="pesanPilihKelas" class="card" style="text-align:center; color:#888; font-weight: bold; margin-bottom: 20px;">
-            Mohon pilih kelas yang akan dilakukan asesmen terlebih dahulu.
-        </div>
-
-        <div id="wadahAbsensiInti" style="display: none;">
+        <div id="wadahAbsensiInti" style="display: block;">
             <h4 style="margin-bottom: 15px; color: #2D3748; font-weight: 800;">Absensi Siswa:</h4>
             <div id="listAbsensiContainer"></div>
             <button class="btn btn-primary" style="margin-top: 20px; padding: 16px; font-size: 1.15rem;" onclick="simpanAbsensiDanLanjut()">LANJUT PENILAIAN</button>
@@ -311,12 +300,7 @@
 
     <!-- HALAMAN HASIL & DETAIL -->
         <div id="page-hasil" class="page">
-        <div style="margin-bottom: 15px;">
-            <label style="color: #fff; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); font-size: 0.9rem;">Filter Kelas:</label>
-            <select id="filterKelasHasil" style="padding: 10px; margin-bottom: 0;">
-                <option value="">Semua Kelas</option>
-            </select>
-        </div>
+
 
         <div style="overflow-x: auto; width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <table id="tabelHasilEvaluasi" class="display nowrap" style="width:100%">
@@ -425,6 +409,9 @@
         </div>
     </div>
 
+    <div style="margin-top: auto; padding: 15px; text-align: center; color: #fff; font-size: 0.85rem; background: linear-gradient(135deg, #6C63FF 0%, #483d8b 100%); font-weight: bold; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -4px 15px rgba(108, 99, 255, 0.3);">
+        &copy; 2026 Nasril Mudika Amin, S. Pd
+    </div>
 </div>
 
 <!-- Memuat Javascript External -->
