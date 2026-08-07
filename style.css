@@ -18,7 +18,7 @@ body { background-color: #cfd8dc; display: flex; justify-content: center; color:
     width: 100%; max-width: 414px; min-height: 100vh; background-color: #F4F7F9; 
     position: relative; overflow-x: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
     display: flex; flex-direction: column; 
-    background: url('assets/background.png') no-repeat center center;
+    background: url('assets/background-2.webp') no-repeat center center;
     background-size: cover;
 }
 
@@ -28,11 +28,12 @@ body { background-color: #cfd8dc; display: flex; justify-content: center; color:
     background: linear-gradient(135deg, #6C63FF 0%, #00B8D4 100%); color: white; padding: 15px; 
     min-height: 70px; display: flex; align-items: center; justify-content: center; 
     position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); 
+    padding-top: 8%;
 }
 
 .header .back-btn { 
     position: absolute; left: 15px; background: rgba(255, 255, 255, 0.25); border: none; 
-    color: white; font-size: 1.2rem; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; 
+    color: white; font-size: 1rem; padding: 0 12px; height: 35px; border-radius: 20px; cursor: pointer; 
     display: none; align-items: center; justify-content: center; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
 }
 
@@ -83,7 +84,7 @@ button.btn:active { transform: translateY(2px); box-shadow: 0 2px 3px rgba(0,0,0
 
 .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .menu-item { background: rgba(255,255,255,.8); border: 2px solid #E2E1FF; border-radius: 16px; padding: 18px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(108, 99, 255, 0.05); transition: 0.2s; color: #2D3748; font-weight: 800; text-align: center; }
-.menu-item:active { background: #6C63FF; color: white; border-color: #5A52D5; transform: scale(0.98); }
+.menu-item:hover, .menu-item:active { background: #6C63FF; color: white; border-color: #5A52D5; transform: scale(0.98); }
 .menu-item .icon { font-size: 2.8rem; margin-bottom: 10px; }
 
 .menu-item-sub { aspect-ratio: 1/1; position: relative; }
@@ -114,5 +115,6 @@ table.dataTable tbody td { padding: 10px 5px; vertical-align: middle; border-bot
 .dataTables_filter input { margin-bottom: 0 !important; width: auto !important; padding: 6px 10px !important; border-radius: 8px !important; border: 1px solid #E2E1FF !important; background: white; }
 
 .logo { width: 100%; }
-.compress { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 55%; }
+.compress { position: absolute; top: 8%; left: 50%; transform: translateX(-50%); width: 55%; }
 .tutup-asesmen { margin: 20px auto; }
+#page-dashboard {padding-top: 12%;}
