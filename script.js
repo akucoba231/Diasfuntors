@@ -14,8 +14,53 @@ let state = {
     tempAsesmen: { id_materi: '', jenis_materi: '', nama_materi: '', idSiswa: null, namaSiswa: '' },
     dinilaiSesiIni : [],
     absensiSesiIni: {},
-    kelasAktifAbsensi: "" 
+    kelasAktifAbsensi: "",
+    kelasAktifFilter: "",
+    targetHalamanFilter: ""
 };
+
+function bukaFilterKelas(targetPage, title) {
+    if (db.siswa.length === 0) {
+        showCustomAlert('Perhatian', 'Data Siswa belum ada, silakan masukan data siswa', () => {
+            state.kelasAktifFilter = '';
+            navigate('page-siswa', 'Daftar Siswa');
+            renderSiswa();
+        });
+        return;
+    }
+    state.targetHalamanFilter = targetPage;
+    let listKelas = [...new Set(db.siswa.map(s => s.kelas || '-'))].filter(k => k !== '-');
+    let container = document.getElementById('listKelasFilterContainer');
+    if(!container) return; // fail-safe
+    container.innerHTML = '';
+    if (targetPage !== 'page-absensi') {
+        container.innerHTML += `<div class="menu-item" style="padding:20px 10px; border-color: #6C63FF;" onclick="terapkanFilterKelas('', '${title}')"><span style="font-size:1.1rem; font-weight:800;">Semua Kelas</span></div>`;
+    }
+    listKelas.forEach((k, index) => {
+        let colors = ['#6C63FF', '#FFB86C', '#00B8D4', '#FF6B6B', '#2E7D32'];
+        let color = colors[index % colors.length];
+        container.innerHTML += `<div class="menu-item" style="padding:20px 10px; border-color: ${color};" onclick="terapkanFilterKelas('${k}', '${title}')"><span style="font-size:1.1rem; font-weight:800;">Kelas ${k}</span></div>`;
+    });
+    navigate('page-pilih-kelas-filter', 'Pilih Kelas');
+}
+
+function terapkanFilterKelas(kelas, title) {
+    state.kelasAktifFilter = kelas;
+    navigate(state.targetHalamanFilter, title);
+    if(state.targetHalamanFilter === 'page-siswa') renderSiswa();
+    else if(state.targetHalamanFilter === 'page-hasil') renderHasil();
+    else if(state.targetHalamanFilter === 'page-absensi') {
+        state.kelasAktifAbsensi = kelas;
+        document.getElementById('lblMateriAbsensi').innerText = state.tempAsesmen.nama_materi;
+        state.absensiSesiIni = {};
+        let siswaKelas = db.siswa.filter(s => (s.kelas || '-') === state.kelasAktifAbsensi);
+        siswaKelas.forEach(s => { state.absensiSesiIni[s.id_siswa || s.id] = 'Masuk'; });
+        renderAbsensi();
+    }
+    else if(state.targetHalamanFilter === 'page-laporan') {
+        renderLaporan();
+    }
+}
 
 // --- CUSTOM ALERT & CONFIRM ---
 let customAlertAction = null;
@@ -123,6 +168,13 @@ function simpanProfilDanLanjut() {
     localStorage.setItem(KEY_DB_AKUN, JSON.stringify(db.pengaturan));
     updateBreadcrumb();
     navigate('page-dashboard', 'Menu Utama');
+    window.scrollTo({top:0, behavior:'smooth'}) 
+    showCustomAlert('Memulai Aplikasi', 'Profil telah disimpan. Anda dialihkan ke Menu Utama.', () => { 
+        
+        // Selalu arahkan kembali ke halaman awal (Landing Page)
+        // apa pun status pengaturan otentikasi login-nya
+        // navigate('page-siswa', 'Daftar Siswa'); renderSiswa();
+    });
 }
 
 /*function logout() {
@@ -240,11 +292,6 @@ function goBackCore() {
 let tabelManajemenSiswaDt;
 
 function renderSiswa() {
-    let listKelas = [...new Set(db.siswa.map(s => s.kelas || '-'))].filter(k => k !== '-');
-    let ddlFilter = document.getElementById('filterKelasTabelSiswa');
-    let currentFilter = ddlFilter.value;
-    ddlFilter.innerHTML = '<option value="">Semua Kelas</option>' + listKelas.map(k => `<option value="${k}">${k}</option>`).join('');
-    ddlFilter.value = currentFilter;
 
     document.getElementById('totalSiswaBadge').innerText = `Total: ${db.siswa.length}`;
     
@@ -289,12 +336,8 @@ function renderSiswa() {
         pageLength: 10, lengthChange: false, info: false, scrollX: true
     });
 
-    $('#filterKelasTabelSiswa').off('change').on('change', function() {
-        let val = $.fn.dataTable.util.escapeRegex($(this).val());
-        tabelManajemenSiswaDt.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
-    });
-    
-    $('#filterKelasTabelSiswa').trigger('change');
+    let val = $.fn.dataTable.util.escapeRegex(state.kelasAktifFilter || '');
+    tabelManajemenSiswaDt.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
 }
 
 function bukaModalSiswa(idEdit = null) {
@@ -314,7 +357,7 @@ function bukaModalSiswa(idEdit = null) {
     } else { 
         title.innerText = "Tambah Siswa Baru"; 
         formId.value = ''; formNama.value = ''; formNISN.value = ''; formNIS.value = '';
-        formAbsen.value = ''; formKelas.value = ''; formJK.value = 'L'; formSekolah.value = ''; 
+        formAbsen.value = ''; formKelas.value = state.kelasAktifFilter || ''; formJK.value = 'L'; formSekolah.value = db.pengaturan.sekolah || ''; 
     }
     document.getElementById('modalSiswa').classList.add('active');
 }
@@ -371,17 +414,161 @@ function tutupModalImport() {
     document.getElementById('modalImportSiswa').classList.remove('active');
 }
 
-function unduhDummyExcel() {
-    let dataDummy = [
-        { "No Abs": 1, "Nama": "Budi Santoso", "NISN": "0012345678", "NIS": "1001", "Kelas": "5-A", "JK": "L", "Sekolah": "SDN 1 Nusantara" },
-        { "No Abs": 2, "Nama": "Siti Aminah", "NISN": "0012345679", "NIS": "1002", "Kelas": "5-A", "JK": "P", "Sekolah": "SDN 1 Nusantara" }
-    ];
+//function unduhDummyExcel() {
+//    let dataDummy = [
+//        { "No Abs": 1, "Nama": "Budi Santoso", "NISN": "0012345678", "NIS": "1001", "Kelas": "5-A", "JK": "L", "Sekolah": "SDN 1 Nusantara" },
+//        { "No Abs": 2, "Nama": "Siti Aminah", "NISN": "0012345679", "NIS": "1002", "Kelas": "5-A", "JK": "P", "Sekolah": "SDN 1 Nusantara" }
+//    ];
+//
+//    let ws = XLSX.utils.json_to_sheet(dataDummy);
+//    let wb = XLSX.utils.book_new();
+//    XLSX.utils.book_append_sheet(wb, ws, "DataSiswa");
+//    downloadExcelSafe(wb, "Template_Import_Siswa.xlsx");
+//}
 
-    let ws = XLSX.utils.json_to_sheet(dataDummy);
-    let wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "DataSiswa");
-    XLSX.writeFile(wb, "Template_Import_Siswa.xlsx");
+function unduhDummyExcel() {
+    let ts = timestamp();
+    try {
+        // Mengubah format JSON menjadi Array of Arrays yang lebih stabil
+        let dataDummy = [
+            ["No Abs", "Nama", "NISN", "NIS", "Kelas", "JK", "Sekolah"],
+            [1, "Budi Santoso", "0012345678", "1001", "5-A", "L", "SDN 1 Nusantara"],
+            [2, "Siti Aminah", "0012345679", "1002", "5-A", "P", "SDN 1 Nusantara"]
+        ];
+
+        let ws = XLSX.utils.aoa_to_sheet(dataDummy);
+
+        // (Opsional) Mengatur lebar kolom agar rapi saat dibuka di Excel
+        ws['!cols'] = [
+            {wpx: 50},  // No Abs
+            {wpx: 150}, // Nama
+            {wpx: 100}, // NISN
+            {wpx: 80},  // NIS
+            {wpx: 60},  // Kelas
+            {wpx: 40},  // JK
+            {wpx: 150}  // Sekolah
+        ];
+
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "DataSiswa");
+
+        // Memanggil jembatan WebView ke Kotlin
+        downloadExcelSafe(wb, "Template_Import_Siswa_" + ts +"_.xlsx");
+
+    } catch (error) {
+        // Menangkap error jika gagal merakit Excel
+        alert("Gagal membuat template excel: " + error.message);
+    }
 }
+
+// function prosesImportExcel() {
+//     let fileInput = document.getElementById('fileExcelImport');
+//     if (!fileInput.files.length) return showCustomAlert('Peringatan', 'Silakan pilih file Excel (.xlsx) terlebih dahulu!');
+
+//     let reader = new FileReader();
+//     reader.onload = function(e) {
+//         let data = new Uint8Array(e.target.result);
+//         let workbook = XLSX.read(data, {type: 'array'});
+//         let firstSheetName = workbook.SheetNames[0];
+//         let worksheet = workbook.Sheets[firstSheetName];
+//         let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+        
+//         if(jsonData.length === 0) return showCustomAlert('Error', 'File Excel kosong atau format tidak sesuai!');
+
+//         let successCount = 0;
+//         jsonData.forEach(row => {
+//             let nama = (row["Nama"] || "").toString().trim();
+//             if(nama) {
+//                 db.siswa.push({
+//                     id_siswa: Date.now() + Math.random(),
+//                     nama_siswa: nama,
+//                     nama: nama,
+//                     nisn: (row["NISN"] || "").toString().trim(),
+//                     nis: (row["NIS"] || "").toString().trim(),
+//                     absen: (row["No Abs"] || "").toString().trim(),
+//                     kelas: (row["Kelas"] || "").toString().trim(),
+//                     jk: (row["JK"] || "L").toString().trim().toUpperCase(),
+//                     asal_sekolah: (row["Sekolah"] || "").toString().trim(),
+//                     nilai: { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 } 
+//                 });
+//                 successCount++;
+//             }
+//         });
+
+//         if(successCount > 0) {
+//             localStorage.setItem(KEY_DB_SISWA, JSON.stringify(db.siswa));
+//             tutupModalImport(); renderSiswa();
+//             showCustomAlert('Berhasil', `${successCount} data siswa berhasil diimpor!`);
+//         } else {
+//             showCustomAlert('Error', 'Tidak ada data valid yang ditemukan. Pastikan kolom "Nama" terisi.');
+//         }
+//     };
+//     reader.readAsArrayBuffer(fileInput.files[0]);
+// }
+
+/*function prosesImportExcel() {
+    let fileInput = document.getElementById('fileExcelImport');
+    if (!fileInput.files.length) return showCustomAlert('Peringatan', 'Silakan pilih file Excel (.xlsx) terlebih dahulu!');
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let data = new Uint8Array(e.target.result);
+        let workbook = XLSX.read(data, {type: 'array'});
+        let firstSheetName = workbook.SheetNames[0];
+        let worksheet = workbook.Sheets[firstSheetName];
+        
+        // raw: false penting agar angka dibaca sebagai teks terformat
+        let jsonData = XLSX.utils.sheet_to_json(worksheet, {raw: false});
+        
+        if(jsonData.length === 0) return showCustomAlert('Error', 'File Excel kosong atau format tidak sesuai!');
+
+        let successCount = 0;
+        jsonData.forEach(row => {
+            // Fungsi pencari header cerdas
+            const getVal = (possibleKeys) => {
+                const key = Object.keys(row).find(k => possibleKeys.includes(k.toLowerCase().trim()));
+                return key ? String(row[key]).trim() : '';
+            };
+
+            const nama = getVal(['nama', 'nama siswa', 'nama lengkap']);
+            const nisn = getVal(['nisn', 'no induk']);
+            const nis = getVal(['nis']);
+            const absen = getVal(['no', 'no.', 'no abs', 'absen', 'no absen', 'nomor']);
+            const kelas = getVal(['kelas', 'kls']);
+            const jk = getVal(['jk', 'j/k', 'jenis kelamin', 'l/p']);
+            const sekolah = getVal(['sekolah', 'asal sekolah']) || db.pengaturan.sekolah;
+
+            if(nama) {
+                db.siswa.push({
+                    id_siswa: Date.now() + Math.random(),
+                    nama_siswa: nama,
+                    nama: nama,
+                    nisn: nisn || "-",
+                    nis: nis || "-",
+                    absen: absen || "-",
+                    kelas: kelas || "-",
+                    jk: jk ? jk.substring(0, 1).toUpperCase() : "L",
+                    asal_sekolah: sekolah || "-",
+                    nilai: { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 } 
+                });
+                successCount++;
+            }
+        });
+
+        if(successCount > 0) {
+            localStorage.setItem(KEY_DB_SISWA, JSON.stringify(db.siswa));
+            tutupModalImport(); 
+            renderSiswa();
+            showCustomAlert('Berhasil', `${successCount} data siswa berhasil diimpor!`);
+        } else {
+            showCustomAlert('Error', 'Tidak ada data valid yang ditemukan. Pastikan ada kolom berjudul "Nama".');
+        }
+        
+        // Reset input agar bisa upload file yang sama dua kali jika perlu
+        fileInput.value = ''; 
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}*/
 
 function prosesImportExcel() {
     let fileInput = document.getElementById('fileExcelImport');
@@ -393,37 +580,78 @@ function prosesImportExcel() {
         let workbook = XLSX.read(data, {type: 'array'});
         let firstSheetName = workbook.SheetNames[0];
         let worksheet = workbook.Sheets[firstSheetName];
-        let jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-        
+
+        let jsonData = XLSX.utils.sheet_to_json(worksheet, {raw: false});
+
         if(jsonData.length === 0) return showCustomAlert('Error', 'File Excel kosong atau format tidak sesuai!');
 
         let successCount = 0;
+        let jumlahDilewati = 0; // Pelacak data ganda
+
         jsonData.forEach(row => {
-            let nama = (row["Nama"] || "").toString().trim();
+            const getVal = (possibleKeys) => {
+                const key = Object.keys(row).find(k => possibleKeys.includes(k.toLowerCase().trim()));
+                return key ? String(row[key]).trim() : '';
+            };
+
+            const nama = getVal(['nama', 'nama siswa', 'nama lengkap']);
+            const nisn = getVal(['nisn', 'no induk']);
+            const nis = getVal(['nis']);
+            const absen = getVal(['no', 'no.', 'no abs', 'absen', 'no absen', 'nomor']);
+            const kelas = getVal(['kelas', 'kls']);
+            const jk = getVal(['jk', 'j/k', 'jenis kelamin', 'l/p']);
+            const sekolah = getVal(['sekolah', 'asal sekolah']) || db.pengaturan.sekolah;
+
             if(nama) {
-                db.siswa.push({
-                    id_siswa: Date.now() + Math.random(),
-                    nama_siswa: nama,
-                    nama: nama,
-                    nisn: (row["NISN"] || "").toString().trim(),
-                    nis: (row["NIS"] || "").toString().trim(),
-                    absen: (row["No Abs"] || "").toString().trim(),
-                    kelas: (row["Kelas"] || "").toString().trim(),
-                    jk: (row["JK"] || "L").toString().trim().toUpperCase(),
-                    asal_sekolah: (row["Sekolah"] || "").toString().trim(),
-                    nilai: { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 } 
-                });
-                successCount++;
+                const cleanNisn = nisn || '-';
+                let isDuplicate = false;
+
+                // Cek duplikasi di dalam db.siswa milik Diasfuntors
+                if (cleanNisn !== '-') {
+                    isDuplicate = db.siswa.some(s => s.nisn === cleanNisn);
+                }
+
+                if (!isDuplicate) {
+                    db.siswa.push({
+                        id_siswa: Date.now() + Math.random(),
+                        nama_siswa: nama,
+                        nama: nama,
+                        nisn: cleanNisn,
+                        nis: nis || "-",
+                        absen: absen || "-",
+                        kelas: kelas || "-",
+                        jk: jk ? jk.substring(0, 1).toUpperCase() : "L",
+                        asal_sekolah: sekolah || "-",
+                        nilai: { 'Lokomotor': 0, 'Non Lokomotor': 0, 'Manipulatif': 0 }
+                    });
+                    successCount++;
+                } else {
+                    jumlahDilewati++;
+                }
             }
         });
 
+        // Tampilkan Custom Alert khas Diasfuntors
         if(successCount > 0) {
             localStorage.setItem(KEY_DB_SISWA, JSON.stringify(db.siswa));
-            tutupModalImport(); renderSiswa();
-            showCustomAlert('Berhasil', `${successCount} data siswa berhasil diimpor!`);
+            tutupModalImport();
+            renderSiswa();
+
+            let pesanSukses = `${successCount} data siswa berhasil diimpor!`;
+            if (jumlahDilewati > 0) {
+                pesanSukses += `\n${jumlahDilewati} data dilewati karena NISN sudah terdaftar.`;
+            }
+            showCustomAlert('Berhasil', pesanSukses);
+
         } else {
-            showCustomAlert('Error', 'Tidak ada data valid yang ditemukan. Pastikan kolom "Nama" terisi.');
+            if (jumlahDilewati > 0) {
+                showCustomAlert('Peringatan', `Semua data (${jumlahDilewati} siswa) ditolak karena NISN tersebut sudah ada di sistem.`);
+            } else {
+                showCustomAlert('Error', 'Tidak ada data valid yang ditemukan. Pastikan ada kolom berjudul "Nama".');
+            }
         }
+
+        fileInput.value = '';
     };
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
@@ -431,7 +659,7 @@ function prosesImportExcel() {
 // --- ASESMEN & ABSENSI FLOW ---
 function pilihKategori(jenis_materi) {
     if (db.siswa.length === 0) { 
-        return showCustomAlert('Data Kosong', 'Data siswa kosong! Isi daftar siswa terlebih dahulu.', () => { navigate('page-siswa', 'Daftar Siswa'); renderSiswa(); });
+        return showCustomAlert('Perhatian', 'Data Siswa belum ada, silakan masukan data siswa', () => { navigate('page-siswa', 'Daftar Siswa'); renderSiswa(); });
     }
     state.tempAsesmen.jenis_materi = jenis_materi; let container = document.getElementById('listSubMateri'); container.innerHTML = '';
     dbMateriFMS.filter(m => m.jenis_materi === jenis_materi).forEach(m => { container.innerHTML += `<div class="menu-item menu-item-sub" style="padding:25px 10px;" onclick="pilihSubMateri('${m.id_materi}')"><img src="./icon/${m.icon}" alt="" /><span style="">${m.nama_materi}</span></div>`; });
@@ -445,34 +673,7 @@ function pilihSubMateri(id_materi) {
     
     state.dinilaiSesiIni = []; state.absensiSesiIni = {}; state.kelasAktifAbsensi = "";
 
-    document.getElementById('filterKelasAbsensi').value = "";
-    document.getElementById('pesanPilihKelas').style.display = 'block';
-    document.getElementById('wadahAbsensiInti').style.display = 'none';
-
-    let listKelas = [...new Set(db.siswa.map(s => s.kelas || '-'))].filter(k => k !== '-');
-    let ddlFilter = document.getElementById('filterKelasAbsensi');
-    ddlFilter.innerHTML = '<option value="">-- Pilih Kelas --</option>' + listKelas.map(k => `<option value="${k}">${k}</option>`).join('');
-
-    document.getElementById('lblMateriAbsensi').innerText = state.tempAsesmen.nama_materi;
-    navigate('page-absensi', 'Absensi Kehadiran');
-}
-
-function pilihKelasAbsensi() {
-    let kelasTerpilih = document.getElementById('filterKelasAbsensi').value;
-    if (!kelasTerpilih) {
-        document.getElementById('pesanPilihKelas').style.display = 'block';
-        document.getElementById('wadahAbsensiInti').style.display = 'none';
-        state.kelasAktifAbsensi = "";
-        return;
-    }
-    state.kelasAktifAbsensi = kelasTerpilih;
-    document.getElementById('pesanPilihKelas').style.display = 'none';
-    document.getElementById('wadahAbsensiInti').style.display = 'block';
-
-    state.absensiSesiIni = {};
-    let siswaKelas = db.siswa.filter(s => (s.kelas || '-') === kelasTerpilih);
-    siswaKelas.forEach(s => { state.absensiSesiIni[s.id_siswa || s.id] = 'Masuk'; });
-    renderAbsensi();
+    bukaFilterKelas('page-absensi', 'Absensi Kehadiran');
 }
 
 function renderAbsensi() {
@@ -606,16 +807,6 @@ function kembaliKeDaftarSiswaDinilai() { renderSiswaAsesmen(); let prev = state.
 
 // --- HASIL, DETAIL & LAPORAN ---
 function renderHasil() {
-    // 1. Setup Filter Kelas untuk Hasil Evaluasi
-    let listKelas = [...new Set(db.siswa.map(s => s.kelas || '-'))].filter(k => k !== '-');
-    let ddlFilter = document.getElementById('filterKelasHasil'); // Pastikan elemen ini ada di page-hasil
-    
-    // Jika dropdown belum ada di HTML, Anda perlu menambahkannya di page-hasil nanti
-    if(ddlFilter) {
-        let currentFilter = ddlFilter.value;
-        ddlFilter.innerHTML = '<option value="">Semua Kelas</option>' + listKelas.map(k => `<option value="${k}">${k}</option>`).join('');
-        ddlFilter.value = currentFilter;
-    }
 
     if ($.fn.DataTable.isDataTable('#tabelHasilEvaluasi')) {
         $('#tabelHasilEvaluasi').DataTable().destroy();
@@ -653,12 +844,8 @@ function renderHasil() {
         pageLength: 10, lengthChange: false, info: false, scrollX: true
     });
 
-    if(ddlFilter) {
-        ddlFilter.onchange = function() {
-            let val = $.fn.dataTable.util.escapeRegex(this.value);
-            dtHasil.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
-        };
-    }
+    let val = $.fn.dataTable.util.escapeRegex(state.kelasAktifFilter || '');
+    dtHasil.column(2).search(val ? '^' + val + '$' : '', true, false).draw();
 }
 
 
@@ -700,14 +887,41 @@ function bukaDetailSiswa(idSiswa) {
         let tmpPersen = Math.round(parseFloat(a.nilai)/parseFloat(a.maxNilai)*100); let feedback = getKategoriPredikat(tmpPersen);
         tbody.innerHTML += `<tr><td>${idx + 1}</td><td style="color:#666; font-weight:bold;">${a.tanggal.split(',')[0]}</td><td><strong style="color:#2D3748; font-size:0.95rem;">${a.sub}</strong><br><span style="font-size:0.75rem; color:#718096;">${a.kategori}</span></td><td style="font-weight:900; color:#6C63FF; text-align:center; font-size:1.1rem;">${tmpPersen}</td><td style="font-weight:900; color: ${feedback.warna}; text-align:center; font-size:1.1rem;">${feedback.teks}</td></tr>`;
     });
-
+    let ts = timestamp();
     let excelFilename = `Riwayat Evaluasi Diasfuntor - ${namaReal} - ${db.pengaturan.sekolah || '-'}`;
     detailDataTable = $('#tabelDetailSiswa').DataTable({
         order: [[0, 'asc']], dom: '<"top"Bf>rt<"bottom"p><"clear">',
         buttons: [{ 
-            extend: 'excelHtml5', text: '📥 Unduh Excel', 
-            title: '', filename: excelFilename,
-            customize: function(xlsx) { excelCustomizerTemplate(xlsx, 'Riwayat Evaluasi Siswa', 'E'); }
+            text: '📥 Unduh Excel', 
+            action: function (e, dt, node, config) {
+                let data = dt.data().toArray();
+                let excelData = [];
+                
+                // Kop Surat Excel
+                excelData.push(["Riwayat Evaluasi Siswa - " + `${namaReal} - ${db.pengaturan.sekolah || '-'}`]);
+                excelData.push(["Nama Guru: " + (db.pengaturan.nama || '-')]);
+                excelData.push(["NIP: " + (db.pengaturan.nip || '-')]);
+                excelData.push([]);
+                excelData.push(["No", "Tanggal", "Materi / Kategori", "Skor (%)", "Predikat"]);
+
+                // Ekstrak data dari tabel dan bersihkan tag HTML
+                data.forEach(row => {
+                    let div = document.createElement('div');
+                    let cleanRow = [];
+                    row.forEach(cell => {
+                        div.innerHTML = cell;
+                        cleanRow.push(div.innerText.trim());
+                    });
+                    excelData.push(cleanRow);
+                });
+
+                let ws = XLSX.utils.aoa_to_sheet(excelData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Riwayat");
+                
+                // Gunakan jembatan WebView kita
+                downloadExcelSafe(wb, `Riwayat Evaluasi Diasfuntor - ${namaReal}_${ts}.xlsx`);
+            }
         }],
         language: { search: "Saring Data:", emptyTable: "Belum ada riwayat asesmen.", paginate: { next: "▶", previous: "◀" } },
         pageLength: 5, lengthChange: false, info: false, scrollX: true
@@ -727,22 +941,53 @@ $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
 function renderLaporan() {
     if ($.fn.DataTable.isDataTable('#tabelDataLaporan')) $('#tabelDataLaporan').DataTable().destroy();
     let tbody = document.querySelector('#tabelDataLaporan tbody'); tbody.innerHTML = '';
-    db.asesmen.forEach(a => { 
+    
+    let listAsesmen = db.asesmen;
+    if (state.kelasAktifFilter) {
+        let siswaKelasIni = db.siswa.filter(s => s.kelas === state.kelasAktifFilter).map(s => s.id_siswa || s.id);
+        listAsesmen = db.asesmen.filter(a => siswaKelasIni.includes(a.idSiswa));
+    }
+
+    listAsesmen.forEach(a => { 
         let tmpPersen = Math.round(parseFloat(a.nilai) / parseFloat(a.maxNilai)*100); let feedback = getKategoriPredikat(tmpPersen);
         tbody.innerHTML += `<tr><td style="color:#666; font-weight:bold;">${a.tanggal.split(',')[0]}</td><td><strong style="color:#2D3748;">${a.namaSiswa}</strong></td><td>${a.kategori} - ${a.sub}</td><td style="font-weight:900; color:#6C63FF;">${tmpPersen}</td><td style="font-weight:900; color:${feedback.warna};">${feedback.teks}</td></tr>`; 
     });
-
+    let ts = timestamp();
     myDataTable = $('#tabelDataLaporan').DataTable({
         order: [[0, 'desc']], dom: '<"top"Bf>rt<"bottom"p><"clear">', 
         buttons: [{ 
-            extend: 'excelHtml5', text: '📥 Unduh Laporan Excel',
-            title: '', 
-            filename: function() {
+            text: '📥 Unduh Laporan Excel',
+            action: function (e, dt, node, config) {
+                // Ambil data yang hanya sedang tampil (sudah difilter)
+                let data = dt.rows({ search: 'applied' }).data().toArray(); 
+                let excelData = [];
                 let d = $('#filterTanggalDT').val();
-                let txtTgl = d ? d : new Date().getFullYear();
-                return `Laporan Asesmen Diasfuntors - ${db.pengaturan.sekolah || '-'} - ${txtTgl}`;
-            },
-            customize: function(xlsx) { excelCustomizerTemplate(xlsx, 'Laporan Asesmen Diasfuntors', 'E'); }
+                let txtTgl = d ? "Filter Tanggal: " + d : "Filter: Semua Tanggal";
+
+                excelData.push(["Laporan Asesmen Diasfuntors - " + `${db.pengaturan.sekolah || '-'}`]);
+                excelData.push(["Nama Guru: " + (db.pengaturan.nama || '-')]);
+                excelData.push(["NIP: " + (db.pengaturan.nip || '-')]);
+                excelData.push([txtTgl]);
+                excelData.push([]);
+                excelData.push(["Tanggal", "Nama Siswa", "Kategori & Materi", "Skor (%)", "Predikat"]);
+
+                data.forEach(row => {
+                    let div = document.createElement('div');
+                    let cleanRow = [];
+                    row.forEach(cell => {
+                        div.innerHTML = cell;
+                        cleanRow.push(div.innerText.trim());
+                    });
+                    excelData.push(cleanRow);
+                });
+
+                let ws = XLSX.utils.aoa_to_sheet(excelData);
+                let wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Laporan");
+                
+                let txtTglName = d ? d : new Date().getFullYear();
+                downloadExcelSafe(wb, `Laporan Asesmen Diasfuntors - ${db.pengaturan.sekolah || '-'} - ${txtTglName}_${ts}.xlsx`);
+            }
         }],
         language: { search: "Cari Data Siswa:", emptyTable: "Belum ada data riwayat tersimpan.", paginate: { next: "▶", previous: "◀" } },
         pageLength: 10, lengthChange: false, info: false, scrollX: true
@@ -819,4 +1064,39 @@ function hapusSemuaRiwayat() {
         localStorage.setItem(KEY_DB_SISWA, JSON.stringify(db.siswa));
         showCustomAlert('Berhasil', 'Seluruh riwayat asesmen telah berhasil dihapus.', () => { handleBack(); });
     });
+}
+
+function downloadExcelSafe(wb, fileName) {
+    if (window.Android && typeof window.Android.saveExcelBase64 === 'function') {
+        // Minta SheetJS untuk langsung menghasilkan output berupa Base64
+        const base64Data = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+        // Kirim Base64 ke Kotlin WebView
+        window.Android.saveExcelBase64(base64Data, fileName);
+    } else {
+        // Fallback jika web dibuka di browser PC/Laptop biasa
+        XLSX.writeFile(wb, fileName);
+    }
+}
+
+function timestamp(){
+    let waktu = new Date();
+    let tanggal = waktu.getDate();
+    if(tanggal.toString().length <= 1){
+        tanggal = `0${tanggal}`;
+    }
+
+    let bulan = waktu.getMonth();
+    bulan = parseInt(bulan) + 1;
+
+    if(bulan.toString().length <= 1){
+        bulan = `0${bulan}`;
+    }
+
+    let tahun = waktu.getFullYear();
+
+    let jam = waktu.getHours();
+
+    let menit = waktu.getMinutes();
+
+    return `${jam}${menit}-${tanggal}${bulan}${tahun}`;
 }
